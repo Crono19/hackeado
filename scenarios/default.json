@@ -1,0 +1,11 @@
+{
+  "id": "support-scam-default",
+  "name": "La sesión fantasma",
+  "description": "Solicitud ficticia de soporte académico con permisos progresivos.",
+  "defaultPhase": "waiting",
+  "fictionalProfile": {
+    "name": "Alex Rivera",
+    "organization": "Campus One"
+  }
+}
+
