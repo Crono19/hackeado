@@ -3,9 +3,40 @@
   "name": "La sesión fantasma",
   "description": "Solicitud ficticia de soporte académico con permisos progresivos.",
   "defaultPhase": "waiting",
-  "fictionalProfile": {
-    "name": "Alex Rivera",
-    "organization": "Campus One"
+  "organization": "Instituto Nova",
+  "privacy": "Todo el contenido es ficticio; no se solicitan ni almacenan datos personales.",
+  "profiles": [
+    {
+      "id": "alex",
+      "alias": "Alex Rivera",
+      "avatarId": "pulse",
+      "roleTitle": "Estudiante de diseño"
+    },
+    {
+      "id": "sam",
+      "alias": "Sam Vega",
+      "avatarId": "orbit",
+      "roleTitle": "Estudiante de ingeniería"
+    },
+    {
+      "id": "noa",
+      "alias": "Noa Castillo",
+      "avatarId": "prism",
+      "roleTitle": "Estudiante de comunicación"
+    }
+  ],
+  "contentPolicy": {
+    "fictionalOnly": true,
+    "realBrands": false,
+    "fileUploads": false,
+    "personalData": false
+  },
+  "support": {
+    "technician": "Mara Voss · Soporte Nivel 2",
+    "caseNumber": "NV-2048-AX",
+    "sender": "mara.voss@soporte-nova.help",
+    "officialDomain": "nova.local",
+    "countdownSeconds": 45,
+    "fictional": true
   }
 }
-

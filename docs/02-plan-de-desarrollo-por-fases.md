@@ -1,5 +1,7 @@
 # HACKEADO — Plan de desarrollo por fases
 
+> **Estado al 21 de octubre de 2026:** Fases 0–19 implementadas en software. Firma docente, ensayo humano de 12–15 minutos y comprobación física Mac → Windows/proyector permanecen como validaciones externas previas al modo híbrido. Evidencia consolidada en `15-fases-18-19-seguridad-y-release.md` y documentos anteriores.
+
 > **Producto:** “Alguien está dentro”  
 > **Documento relacionado:** `01-especificacion-maestra-hackeado.md`  
 > **Objetivo:** Construir, verificar y preparar la experiencia completa de manera incremental, manteniendo una demostración utilizable al final de cada bloque importante.
@@ -792,15 +794,15 @@ Una fase solo se considera terminada cuando:
 
 ## 6. Recomendación de reparto técnico
 
-| Área | Responsabilidad |
-|---|---|
-| Coordinación técnica | Integración, prioridades y revisiones. |
-| Backend | Sesiones, estados, Socket.IO y seguridad. |
-| Víctima | Historia, permisos y recuperación. |
-| Atacante | Consola, cronología y acciones. |
-| Público | Revelación, visualizaciones y puntuación. |
-| Diseño/contenido | Identidad, textos, recursos ficticios y sonido. |
-| QA/operación | Pruebas, contingencias, hardware y ensayos. |
+| Área                 | Responsabilidad                                 |
+| -------------------- | ----------------------------------------------- |
+| Coordinación técnica | Integración, prioridades y revisiones.          |
+| Backend              | Sesiones, estados, Socket.IO y seguridad.       |
+| Víctima              | Historia, permisos y recuperación.              |
+| Atacante             | Consola, cronología y acciones.                 |
+| Público              | Revelación, visualizaciones y puntuación.       |
+| Diseño/contenido     | Identidad, textos, recursos ficticios y sonido. |
+| QA/operación         | Pruebas, contingencias, hardware y ensayos.     |
 
 Todos los integrantes deben poder iniciar, detener y restablecer la estación.
 
@@ -819,4 +821,3 @@ Al concluir las 20 fases existirán:
 - Guion de 15 minutos.
 - Documentación técnica y operativa.
 - Una estación segura, repetible e impactante.
-

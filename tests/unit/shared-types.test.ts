@@ -1,14 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { experiencePhases, experienceRoles } from '../../src/shared/types';
+import {
+  experienceOutcomes,
+  experiencePhases,
+  experienceRoles,
+  permissionKeys,
+} from '../../src/shared/types';
 
 describe('shared experience contracts', () => {
-  it('defines the four application roles', () => {
+  it('defines four application roles', () => {
     expect(experienceRoles).toEqual(['victim', 'attacker', 'audience', 'coordinator']);
   });
 
-  it('starts with preparation and ends with reset', () => {
-    expect(experiencePhases.at(0)).toBe('preparation');
-    expect(experiencePhases.at(-1)).toBe('reset');
+  it('defines three endings plus pending state', () => {
+    expect(experienceOutcomes).toEqual(['pending', 'safe', 'moderate', 'compromised']);
+  });
+
+  it('contains explicit emergency and reset phases', () => {
+    expect(experiencePhases).toContain('emergency');
+    expect(experiencePhases).toContain('reset');
+  });
+
+  it('models all seven permission keys from specification', () => {
+    expect(permissionKeys).toHaveLength(7);
   });
 });
-

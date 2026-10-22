@@ -17,7 +17,13 @@
     "start": "node dist/server/server/index.js",
     "typecheck": "tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:watch": "vitest",
+    "verify:realtime": "node scripts/verify-realtime.mjs",
+    "verify:ten-rounds": "node scripts/verify-ten-rounds.mjs",
+    "verify:release": "sh scripts/verify-demo.sh",
+    "package:offline": "sh scripts/package-offline.sh",
+    "record:backup": "node scripts/record-backup.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -26,6 +32,7 @@
   "dependencies": {
     "dotenv": "latest",
     "express": "latest",
+    "qrcode": "^1.5.4",
     "react": "latest",
     "react-dom": "latest",
     "socket.io": "latest",
@@ -34,8 +41,10 @@
   },
   "devDependencies": {
     "@eslint/js": "latest",
+    "@playwright/test": "^1.64.1",
     "@types/express": "latest",
     "@types/node": "latest",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
@@ -52,4 +61,3 @@
     "vitest": "latest"
   }
 }
-

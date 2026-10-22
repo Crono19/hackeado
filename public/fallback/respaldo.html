@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HACKEADO // Respaldo offline</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Consolas, monospace;
+        background: #030504;
+        color: #eef5e8;
+        --a: #baff2f;
+        --c: #25f6e9;
+        --d: #ff354b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 80% 15%, #25f6e912, transparent 35rem),
+          repeating-linear-gradient(0deg, transparent 0 3px, #0008 3px 4px), #030504;
+        overflow: hidden;
+      }
+      main {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 4vw;
+      }
+      .deck {
+        width: min(1200px, 94vw);
+        border: 1px solid #baff2f44;
+        background: #070b08ee;
+        box-shadow: 0 0 80px #baff2f0b;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #baff2f33;
+        color: #91a096;
+        font-size: 0.7rem;
+      }
+      .top b {
+        color: var(--a);
+      }
+      .scene {
+        display: none;
+        min-height: 62vh;
+        padding: clamp(1.5rem, 5vw, 5rem);
+        position: relative;
+      }
+      .scene.active {
+        display: grid;
+        align-content: center;
+        animation: in 0.45s ease-out;
+      }
+      .scene small {
+        color: var(--c);
+        letter-spacing: 0.14em;
+      }
+      .scene h1 {
+        font:
+          900 clamp(4rem, 10vw, 9rem)/0.78 Impact,
+          sans-serif;
+        margin: 0.4rem 0;
+        text-transform: uppercase;
+      }
+      .scene h1 span {
+        color: var(--d);
+      }
+      .scene p {
+        max-width: 760px;
+        color: #a8b5ae;
+        font:
+          clamp(1rem, 2vw, 1.45rem)/1.5 Arial,
+          sans-serif;
+      }
+      .flow {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+        align-items: center;
+      }
+      .flow article,
+      .step {
+        padding: 1rem;
+        border: 1px solid #ffffff22;
+      }
+      .flow i {
+        color: var(--d);
+        font-style: normal;
+        font-size: 2rem;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+        margin-top: 1rem;
+      }
+      .step b {
+        display: block;
+        color: var(--a);
+        font-size: 1.2rem;
+      }
+      .controls {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        padding: 1rem;
+        border-top: 1px solid #baff2f22;
+      }
+      .controls button {
+        padding: 0.65rem 1rem;
+        border: 1px solid var(--a);
+        background: transparent;
+        color: var(--a);
+        font: 700 0.7rem Consolas;
+        cursor: pointer;
+      }
+      .controls button:hover {
+        background: var(--a);
+        color: #030504;
+      }
+      .bar {
+        flex: 1;
+        height: 4px;
+        background: #243025;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--a);
+        transition: width 0.3s;
+      }
+      .counter {
+        font-size: 0.7rem;
+        color: #91a096;
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+      }
+      @media (max-width: 700px) {
+        .flow,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .scene h1 {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="deck" aria-label="Respaldo audiovisual HACKEADO">
+        <header class="top">
+          <b>HACKEADO_ // BACKUP LOCAL</b><span>SIN INTERNET · SOLO DATOS FICTICIOS</span>
+        </header>
+        <article class="scene active">
+          <small>01 // LA DECISIÓN</small>
+          <h1>“Solo es<br /><span>soporte.”</span></h1>
+          <p>
+            Un mensaje urgente parece confiable. La víctima acepta ayuda sin verificar por un canal
+            oficial.
+          </p>
+        </article>
+        <article class="scene">
+          <small>02 // DOS PERSPECTIVAS</small>
+          <h1>ALGUIEN<br /><span>ESTÁ DENTRO.</span></h1>
+          <div class="flow">
+            <article>
+              <b>VÍCTIMA</b>
+              <p>Ve asistencia y una solución rápida.</p>
+            </article>
+            <i>→</i>
+            <article>
+              <b>OTRO LADO</b>
+              <p>Ve pantalla, permisos y archivos ficticios.</p>
+            </article>
+          </div>
+        </article>
+        <article class="scene">
+          <small>03 // SEÑALES</small>
+          <h1>PAUSA.<br />VERIFICA.</h1>
+          <div class="steps">
+            <div class="step"><b>01</b>Urgencia artificial</div>
+            <div class="step"><b>02</b>Remitente o dominio extraño</div>
+            <div class="step"><b>03</b>Permisos excesivos</div>
+          </div>
+        </article>
+        <article class="scene">
+          <small>04 // CONTENCIÓN</small>
+          <h1>RECUPERA<br /><span>EL CONTROL.</span></h1>
+          <div class="steps">
+            <div class="step"><b>01</b>Detén acceso</div>
+            <div class="step"><b>02</b>Revoca permisos</div>
+            <div class="step"><b>03</b>Cambia contraseñas</div>
+            <div class="step"><b>04</b>Cierra sesiones</div>
+            <div class="step"><b>05</b>Activa 2FA</div>
+            <div class="step"><b>06</b>Revisa y reporta</div>
+          </div>
+        </article>
+        <article class="scene">
+          <small>05 // IDEA FINAL</small>
+          <h1>EL ATAQUE EMPEZÓ<br /><span>CON UN “SÍ”.</span></h1>
+          <p>
+            Verifica identidad. Limita permisos. Detén y reporta. Si tienes duda, no concedas
+            acceso.
+          </p>
+        </article>
+        <footer class="controls">
+          <button id="prev">← ANTERIOR</button><button id="play">▶ AUTO</button
+          ><button id="next">SIGUIENTE →</button>
+          <div class="bar"><i id="progress"></i></div>
+          <span class="counter" id="counter">01/05</span>
+        </footer>
+      </section>
+    </main>
+    <script>
+      const scenes = [...document.querySelectorAll('.scene')],
+        progress = document.querySelector('#progress'),
+        counter = document.querySelector('#counter'),
+        play = document.querySelector('#play');
+      let index = 0,
+        timer = null;
+      function show(next) {
+        index = (next + scenes.length) % scenes.length;
+        scenes.forEach((scene, i) => scene.classList.toggle('active', i === index));
+        progress.style.width = `${((index + 1) / scenes.length) * 100}%`;
+        counter.textContent = `${String(index + 1).padStart(2, '0')}/${String(scenes.length).padStart(2, '0')}`;
+      }
+      function stop() {
+        clearInterval(timer);
+        timer = null;
+        play.textContent = '▶ AUTO';
+      }
+      document.querySelector('#prev').onclick = () => {
+        stop();
+        show(index - 1);
+      };
+      document.querySelector('#next').onclick = () => {
+        stop();
+        show(index + 1);
+      };
+      play.onclick = () => {
+        if (timer) {
+          stop();
+          return;
+        }
+        play.textContent = 'Ⅱ PAUSA';
+        timer = setInterval(() => show(index + 1), 7000);
+      };
+      addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') document.querySelector('#next').click();
+        if (event.key === 'ArrowLeft') document.querySelector('#prev').click();
+        if (event.key === ' ') play.click();
+      });
+      show(0);
+    </script>
+  </body>
+</html>

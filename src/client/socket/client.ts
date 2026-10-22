@@ -1,16 +1,25 @@
-import { io } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
+import type { SessionCredentials } from '../../shared/types';
 
 function deriveServerUrl() {
   if (import.meta.env.VITE_SERVER_URL) {
     return import.meta.env.VITE_SERVER_URL;
   }
 
-  return `${window.location.protocol}//${window.location.hostname}:3000`;
+  if (window.location.port === '5174') {
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }
+
+  return window.location.origin;
 }
 
-export const socket = io(deriveServerUrl(), {
-  autoConnect: false,
-  reconnection: true,
-  reconnectionAttempts: 5,
-});
-
+export function createSessionSocket(credentials: SessionCredentials): Socket {
+  return io(deriveServerUrl(), {
+    auth: { sessionId: credentials.sessionId, token: credentials.token },
+    autoConnect: false,
+    reconnection: true,
+    reconnectionAttempts: 8,
+    reconnectionDelay: 500,
+    timeout: 4_000,
+  });
+}

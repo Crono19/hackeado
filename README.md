@@ -2,18 +2,50 @@
 
 Aplicación educativa multisistema para una estación interactiva sobre acceso remoto, spyware y permisos peligrosos. El Mac ejecuta el servidor y los paneles de coordinación/atacante; Windows funciona como equipo víctima; un proyector muestra la vista pública.
 
-> La aplicación no implementa acceso remoto oculto ni captura datos reales. El control real se realizará, cuando corresponda, mediante una herramienta legítima y consentida de soporte remoto. Las consecuencias sensibles son simuladas.
+> La aplicación incorpora transmisión WebRTC visible y consentida de la pestaña Víctima. El mouse y teclado remotos se limitan al escritorio web ficticio de HACKEADO; no inyectan entradas en Windows ni controlan otras aplicaciones. Las consecuencias sensibles son simuladas.
 
 ## Estado
 
-Base inicial del repositorio. Incluye:
+Fases 0–19 implementadas en software. Incluye:
 
 - React + TypeScript + Vite.
 - Node.js + Express.
 - Socket.IO para comunicación en tiempo real.
 - Cuatro rutas iniciales: víctima, atacante, público y coordinación.
+- Consola interactiva de dominio en `/debug`.
+- Máquina de estados con tres finales, parada de emergencia y reinicio total.
+- Contratos compartidos para sesión, participantes, permisos, riesgo y cronología.
+- Sesiones temporales, códigos de seis dígitos, QR y aprobación por rol.
+- Tokens efímeros, expiración, límites de intentos y revocación total.
+- Rooms Socket.IO, ACK, deduplicación, presencia, latido y reconexión.
+- Sistema visual reusable con temas claro, advertencia y oscuro.
+- Centro de mando completo con escenas, preflight, participantes y failsafe.
+- Reloj autoritativo de 15 minutos, pausa estable, hitos privados y cierre rápido.
+- Bienvenida sin datos personales y tres identidades ficticias predefinidas.
+- Escritorio Nova con aplicaciones, archivos y notificaciones totalmente ficticios.
+- Conversación de soporte ficticia, contador narrativo y señales inspeccionables.
+- Tres decisiones con rutas segura, moderada y comprometida.
+- Permisos progresivos, dependencias y riesgo narrativo recalculado.
+- Centro atacante contextual con acciones autorizadas y etiquetas real/simulado.
+- Vista pública con misterio protegido y revelación sincronizada para proyector.
+- Flujo visual víctima/atacante, mapa de permisos y comparación de perspectivas.
+- Motor de nueve efectos simulados con cola, tiempos, confirmación y cancelación segura.
+- Escritorio ficticio animado con cursor, ventanas, escritura, sensores y alertas simuladas.
+- Cronología por actor/naturaleza, riesgo ampliado y puntuación educativa determinista.
+- Resumen final con momento clave, retroalimentación y prevención.
+- Reto LOCKDOWN con seis pasos ordenables, validación y progreso colectivo.
+- Bloqueo de resultado hasta confirmar el fin del acceso remoto.
+- Checklist operativo para control consentido Mac → Windows y doble confirmación.
+- Video WebRTC punto a punto con objetivo 1080p/30 FPS y telemetría de calidad.
+- Canal de datos WebRTC para cursor, clic y teclado dentro del escritorio web ficticio.
+- Modos simulado, ensayo ×4 y real; cierre rápido y reanudación visible.
+- Respaldo audiovisual offline y manual de respuesta a fallos.
+- CSP, política de orígenes, rate limiting y permisos sensibles bloqueados.
+- Tokens con vencimiento propio, API sin caché y errores sanitizados.
+- Suite E2E Chromium para tres finales, emergencia, responsive y teclado.
+- Preflight de diez rondas, paquete offline, video y manuales operativos.
 - Validación con Zod.
-- Vitest para pruebas unitarias.
+- Vitest para pruebas unitarias e integración.
 - ESLint y Prettier.
 - Documentación funcional en `docs/`.
 
@@ -46,28 +78,33 @@ http://IP-DEL-MAC:5174/victima
 
 ## Rutas iniciales
 
-| Ruta | Uso |
-|---|---|
-| `/` | Inicio y estado de la base |
-| `/victima` | Panel de víctima en Windows |
-| `/atacante` | Panel del operador en Mac |
-| `/publico` | Vista para el proyector |
-| `/coordinacion` | Control general de la experiencia |
+| Ruta            | Uso                                                    |
+| --------------- | ------------------------------------------------------ |
+| `/`             | Inicio y estado de la base                             |
+| `/victima`      | Panel de víctima en Windows                            |
+| `/atacante`     | Panel del operador en Mac                              |
+| `/publico`      | Vista para el proyector                                |
+| `/coordinacion` | Control general de la experiencia                      |
+| `/debug`        | Consola de la máquina de estados (desarrollo y ensayo) |
 
 ## Scripts
 
-| Comando | Función |
-|---|---|
-| `npm run dev` | Inicia servidor y cliente en modo desarrollo |
-| `npm run dev:client` | Inicia solamente Vite |
-| `npm run dev:server` | Inicia solamente Express/Socket.IO |
-| `npm run build` | Compila cliente y servidor |
-| `npm run start` | Ejecuta la compilación del servidor |
-| `npm run typecheck` | Comprueba tipos de frontend y backend |
-| `npm run test` | Ejecuta pruebas unitarias |
-| `npm run lint` | Ejecuta ESLint |
-| `npm run format` | Formatea el repositorio con Prettier |
-| `npm run check` | Ejecuta tipos, lint, pruebas y build |
+| Comando                   | Función                                                |
+| ------------------------- | ------------------------------------------------------ |
+| `npm run dev`             | Inicia servidor y cliente en modo desarrollo           |
+| `npm run dev:client`      | Inicia solamente Vite                                  |
+| `npm run dev:server`      | Inicia solamente Express/Socket.IO                     |
+| `npm run build`           | Compila cliente y servidor                             |
+| `npm run start`           | Sirve el cliente compilado, API y Socket.IO desde Node |
+| `npm run typecheck`       | Comprueba tipos de frontend y backend                  |
+| `npm run test`            | Ejecuta pruebas unitarias                              |
+| `npm run test:e2e`        | Ejecuta flujos reales en Chromium                      |
+| `npm run verify:realtime` | Verifica sincronización contra servidor activo         |
+| `npm run lint`            | Ejecuta ESLint                                         |
+| `npm run format`          | Formatea el repositorio con Prettier                   |
+| `npm run check`           | Ejecuta tipos, lint, pruebas y build                   |
+| `npm run verify:release`  | Ejecuta preflight, diez rondas y E2E                   |
+| `npm run package:offline` | Crea paquete autocontenido para el Mac                 |
 
 ## Arquitectura inicial
 
@@ -78,10 +115,10 @@ víctima | atacante | público | coordinación
                  │ HTTP + Socket.IO
                  ▼
 Servidor Node.js + Express
-salud | sesiones futuras | estado temporal futuro
+sesiones | roles | estado temporal | simulación | resumen
 ```
 
-El servidor será la fuente de verdad. En fases posteriores administrará sesiones temporales, roles, máquina de estados, cronología, permisos narrativos y recuperación.
+El servidor será la fuente de verdad. El dominio y la máquina de estados ya están definidos en `src/shared`; la persistencia temporal y sincronización completa se conectarán en las siguientes fases.
 
 ## Árbol del proyecto
 
@@ -119,6 +156,46 @@ No deben almacenarse credenciales ni secretos reales.
 - [Especificación maestra](docs/01-especificacion-maestra-hackeado.md)
 - [Plan de desarrollo](docs/02-plan-de-desarrollo-por-fases.md)
 - [Manual de presentación](docs/03-manual-presentacion-hackeado.md)
+- [Validación ética y operativa de Fase 0](docs/04-fase-0-validacion-y-operacion.md)
+- [Dominio y máquina de estados de Fase 2](docs/05-fase-2-dominio-y-maquina-de-estados.md)
+- [Sesiones, tiempo real y sistema visual](docs/06-fases-3-5-sesiones-realtime-y-diseno.md)
+- [Coordinación, reloj y víctima](docs/07-fases-6-8-coordinacion-tiempo-victima.md)
+- [Engaño, permisos y atacante](docs/08-fases-9-11-engano-permisos-atacante.md)
+- [Público, simulación y resultados](docs/09-fases-12-14-publico-simulacion-resultados.md)
+- [Recuperación, control remoto y resiliencia](docs/10-fases-15-17-recuperacion-operacion-resiliencia.md)
+- [Manual de operación](docs/11-manual-de-operacion.md)
+- [Manual de contingencias](docs/12-manual-de-contingencias.md)
+- [Guion por integrante](docs/13-guion-por-integrante.md)
+- [Checklist imprimible](docs/14-checklist-imprimible.md)
+- [Seguridad y release](docs/15-fases-18-19-seguridad-y-release.md)
+- [Transmisión WebRTC y control web](docs/16-webrtc-transmision-y-control-web.md)
+
+## Estado de aceptación de Fases 0–19
+
+| Fase | Estado                                     | Evidencia                                                                          |
+| ---- | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 0    | Implementada; aprobación docente pendiente | Matriz, wireframes, límites, topología, inventario y acta preparados               |
+| 1    | Completa                                   | Arranque, cuatro rutas, API de salud, build, herramientas y servidor de producción |
+| 2    | Completa                                   | Tipos, máquina de estados, `/debug` y pruebas automatizadas                        |
+| 3    | Completa                                   | Sesiones, código/QR, aprobación, tokens, expiración y reset                        |
+| 4    | Completa                                   | Rooms, eventos validados, ACK, dedup, presencia y reconexión                       |
+| 5    | Completa                                   | Componentes, tres temas, responsive y accesibilidad                                |
+| 6    | Completa                                   | Centro de mando, estado técnico, escenas, reset y parada segura                    |
+| 7    | Completa                                   | Reloj de servidor, pausa, hitos, alertas y cierre rápido                           |
+| 8    | Completa                                   | Identidad ficticia, escenario entregado y escritorio Nova                          |
+| 9    | Completa                                   | Mensajería, señales, decisiones, puntuación inicial y final seguro                 |
+| 10   | Completa                                   | Permisos, dependencias, riesgo, rechazo parcial y sincronización                   |
+| 11   | Completa                                   | Centro atacante, catálogo contextual, confirmaciones y cronología                  |
+| 12   | Completa                                   | Misterio protegido, revelación, flujo, comparación y estado público filtrado       |
+| 13   | Completa                                   | Cola simulada, nueve efectos, tiempos, confirmación y cancelación segura           |
+| 14   | Completa                                   | Cronología tipada, riesgo, puntuación y resumen educativo final                    |
+| 15   | Completa                                   | Reto ordenable, seis pasos, bloqueo remoto y puntuación final                      |
+| 16   | Completa en software                       | Checklist, estados y doble confirmación; prueba física pendiente                   |
+| 17   | Completa                                   | Simulación, ensayo, cierre rápido, reconexión y respaldo offline                   |
+| 18   | Completa                                   | CSP, orígenes, límites, tokens, privacidad y pruebas de abuso                      |
+| 19   | Completa en software                       | RC, E2E, preflight, paquete, video y manuales; aprobación externa pendiente        |
+
+La firma docente y la comprobación del equipo físico son validaciones externas: deben realizarse antes de una demostración híbrida. Hasta entonces solo se autoriza el modo simulado.
 
 ## Límites de seguridad
 
@@ -126,7 +203,6 @@ No deben almacenarse credenciales ni secretos reales.
 - Sin keylogging, spyware, exploits o persistencia.
 - Sin captura real de cámara, micrófono o contraseñas.
 - Sin transferencia real de archivos.
-- Control remoto separado, visible, temporal y revocable.
+- Transmisión WebRTC visible, temporal y revocable.
+- Control integrado limitado estrictamente a la interfaz web ficticia.
 - Modo simulado como respaldo operativo.
-
-

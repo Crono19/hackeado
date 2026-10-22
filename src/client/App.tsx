@@ -1,20 +1,26 @@
 import { roleRoutes } from './routes';
-import { DashboardPlaceholder } from './components/DashboardPlaceholder';
+import { RoleDashboard } from './components/RoleDashboard';
+import { StateMachineDebug } from './components/StateMachineDebug';
 
 export function App() {
   const route = roleRoutes.find((item) => item.path === window.location.pathname);
+  const isDebug = window.location.pathname === '/debug';
 
   return (
     <main id="main-content" className="app-shell">
       <div className="grain" aria-hidden="true" />
+      <div className="scanlines" aria-hidden="true" />
+      <div className="breach-line" aria-hidden="true" />
       <header className="topbar">
         <a className="brand" href="/" aria-label="Ir al inicio de HACKEADO">
           HACKEADO<span aria-hidden="true">_</span>
         </a>
-        <span className="status-chip">Base · Fase 1</span>
+        <span className="status-chip">
+          <i aria-hidden="true" /> DEMO CONTROLADA // RC 00—19
+        </span>
       </header>
 
-      {route ? <DashboardPlaceholder route={route} /> : <Home />}
+      {isDebug ? <StateMachineDebug /> : route ? <RoleDashboard route={route} /> : <Home />}
     </main>
   );
 }
@@ -23,15 +29,26 @@ function Home() {
   return (
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero-copy">
-        <p className="eyebrow">GRUPO 3 · SEGURIDAD INFORMÁTICA</p>
-        <h1 id="hero-title">
+        <p className="eyebrow">INCIDENT LAB // GRUPO 03 // GT-2026</p>
+        <h1 id="hero-title" data-text="Alguien está dentro">
           Alguien está
           <span>dentro.</span>
         </h1>
         <p className="lede">
-          Base técnica de una experiencia sobre acceso remoto, permisos peligrosos y la decisión
-          que abre la puerta.
+          Base técnica de una experiencia sobre acceso remoto, permisos peligrosos y la decisión que
+          abre la puerta.
         </p>
+        <div className="system-readout" aria-label="Estado del sistema">
+          <span>
+            <b>CORE</b> READY
+          </span>
+          <span>
+            <b>STATE</b> GUARDED
+          </span>
+          <span>
+            <b>REMOTE</b> ISOLATED
+          </span>
+        </div>
       </div>
 
       <nav className="panel-grid" aria-label="Paneles de la experiencia">
@@ -47,6 +64,12 @@ function Home() {
         ))}
       </nav>
 
+      <a className="debug-entry" href="/debug">
+        <span>DEV://STATE_ENGINE</span>
+        <strong>Abrir consola de dominio</strong>
+        <i aria-hidden="true">↗</i>
+      </a>
+
       <footer className="hero-footer">
         <span>Demostración controlada</span>
         <span>Información ficticia</span>
@@ -55,4 +78,3 @@ function Home() {
     </section>
   );
 }
-

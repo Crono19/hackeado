@@ -2,4 +2,6 @@ dist
 coverage
 node_modules
 package-lock.json
+docs/01-especificacion-maestra-hackeado.md
+docs/03-manual-presentacion-hackeado.md
 

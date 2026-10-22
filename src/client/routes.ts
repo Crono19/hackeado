@@ -38,4 +38,3 @@ export const roleRoutes: RoleRoute[] = [
     description: 'Sesión, tiempo, fases y parada de emergencia.',
   },
 ];
-
