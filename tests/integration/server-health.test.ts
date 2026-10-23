@@ -6,6 +6,8 @@ describe('server health', () => {
     expect(buildHealthResponse(new Date('2026-10-20T12:00:00.000Z'))).toEqual({
       status: 'ok',
       service: 'hackeado-server',
+      version: '1.0.0-rc.1',
+      release: 'EXPO RC',
       timestamp: '2026-10-20T12:00:00.000Z',
     });
   });

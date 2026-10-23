@@ -25,7 +25,11 @@ describe('audience state projection', () => {
         ...permission,
         status: 'granted' as const,
       })),
-      remote: { status: 'control' as const },
+      remote: {
+        ...base.remote,
+        status: 'control' as const,
+        input: { status: 'active' as const, leaseId: 'private-lease-id' },
+      },
     };
     const publicState = toPublicSession(privateState);
     expect(publicState.phase).toBe('decision');
@@ -33,13 +37,37 @@ describe('audience state projection', () => {
     expect(publicState.story.decision).toBeUndefined();
     expect(publicState.permissions.every((item) => item.status === 'idle')).toBe(true);
     expect(publicState.remote.status).toBe('idle');
+    expect(publicState.remote.input.leaseId).toBeUndefined();
     expect(publicState.pairingCode).toBe('••••••');
   });
 
   it('reveals educational state only when reveal begins', () => {
     const base = createInitialSession({ now: 1_000 });
-    const state = { ...base, phase: 'reveal' as const, outcome: 'moderate' as const };
-    expect(toPublicSession(state).outcome).toBe('moderate');
-    expect(toPublicSession(state).phase).toBe('reveal');
+    const state = {
+      ...base,
+      phase: 'reveal' as const,
+      outcome: 'moderate' as const,
+      remote: {
+        ...base.remote,
+        agent: {
+          ...base.remote.agent,
+          status: 'online' as const,
+          deviceId: 'private-device',
+          agentId: 'private-agent',
+        },
+        input: {
+          status: 'active' as const,
+          leaseId: 'private-lease',
+          ownerParticipantId: 'private-owner',
+        },
+      },
+    };
+    const publicState = toPublicSession(state);
+    expect(publicState.outcome).toBe('moderate');
+    expect(publicState.phase).toBe('reveal');
+    expect(publicState.remote.agent.agentId).toBeUndefined();
+    expect(publicState.remote.agent.deviceId).toBeUndefined();
+    expect(publicState.remote.input.leaseId).toBeUndefined();
+    expect(publicState.remote.input.ownerParticipantId).toBeUndefined();
   });
 });

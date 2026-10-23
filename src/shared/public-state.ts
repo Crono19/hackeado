@@ -1,4 +1,5 @@
 import type { DemoSession } from './types.js';
+import { createInitialRemoteControlState } from './remote-state.js';
 
 const revealPhases = new Set(['reveal', 'containment', 'recovery', 'result', 'emergency']);
 
@@ -32,7 +33,19 @@ export function toPublicSession(session: DemoSession): DemoSession {
     risk: revealed
       ? session.risk
       : { privacy: 0, deviceControl: 0, accounts: 0, files: 0, recoverability: 100 },
-    remote: revealed ? session.remote : { status: 'idle' },
+    remote: revealed
+      ? {
+          ...session.remote,
+          agent: {
+            status: session.remote.agent.status,
+            capabilities: { ...createInitialRemoteControlState().agent.capabilities },
+          },
+          input: {
+            status: session.remote.input.status,
+            grantedAt: session.remote.input.grantedAt,
+          },
+        }
+      : createInitialRemoteControlState(),
     simulation: revealed ? session.simulation : { queue: [], exposedPercent: 0 },
     summary: revealed ? session.summary : undefined,
   };

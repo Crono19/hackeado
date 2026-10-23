@@ -1,97 +1,101 @@
-# Manual de operación — HACKEADO RC
+# Manual de operación — HACKEADO EXPO RC
 
 ## Alcance
 
-Este manual permite montar, ejecutar, restablecer y cerrar la estación sin conocimiento del código. La aplicación coordina la experiencia; no implementa control remoto ni captura información personal.
+Operación repetible de Mac atacante + VM Windows víctima. Control nativo solo dentro de cuenta estándar ficticia, con aplicación visible, consentimiento doble y parada local.
 
-## Equipo
+## Arranque de exposición
 
-- Mac: servidor, coordinación y atacante.
-- Windows: víctima, cuenta local ficticia sin privilegios administrativos.
-- Proyector: panel público a 1920 × 1080 recomendado.
-- Router autorizado: red local; Internet no es necesario en modo simulado.
-- Cargadores y audio.
+1. Restaurar snapshot limpio de Windows.
+2. Confirmar usuario `VictimaDemo`, sin privilegios ni datos personales.
+3. Conectar Mac, host de VM y proyector al router privado.
+4. En Mac, copiar `.env.expo.example` a `.env` y completar IP, certificado, `deviceId` y secreto.
+5. Verificar que Windows confíe en certificado TLS.
+6. Ejecutar:
 
-## Preparación inicial
+```bash
+npm run verify:release
+npm run build
+npm run start:expo
+```
 
-1. Conectar todos los equipos a energía.
-2. Cerrar correo, mensajería, nube, gestores de contraseña y cuentas personales.
-3. Confirmar cuenta ficticia en Windows.
-4. Conectar Mac, Windows y proyector a la misma red autorizada.
-5. Copiar `.env.example` como `.env`.
-6. En `CLIENT_ORIGIN`, incluir el origen exacto usado por el navegador durante desarrollo. En producción, usar la app servida desde el puerto 3000.
-7. Ejecutar `sh scripts/verify-demo.sh` antes de abrir la estación.
-8. Ejecutar `sh scripts/start-demo.sh`.
-9. Abrir en Mac:
-   - `http://localhost:3000/coordinacion`
-   - `http://localhost:3000/atacante`
-   - `http://localhost:3000/publico` en proyector.
-10. Abrir en Windows: `http://IP-DEL-MAC:3000/victima`.
+7. En otra terminal:
+
+```bash
+HACKEADO_URL=https://IP-DEL-MAC:3000 npm run verify:live-network
+```
+
+8. En Windows, ejecutar `verify-demo-vm.ps1`.
+9. Abrir manualmente `HACKEADO.VictimHost.exe`.
+10. Abrir en Mac `/coordinacion`, `/atacante` y `/publico`.
 
 ## Inicio de ronda
 
-1. Coordinación elige `simulated`, `rehearsal` o `live`.
-2. Crear sesión. Anotar solo el código temporal visible; nunca el token.
-3. Víctima, atacante y público solicitan acceso.
-4. Coordinación verifica cada rol y aprueba.
-5. Confirmar los cuatro nodos conectados.
-6. Probar tono; marcar audio listo.
-7. En modo real, completar los siete checks antes de armar la herramienta externa.
-8. Iniciar historia y reloj.
+1. Coordinación crea sesión `live`.
+2. Víctima, Atacante y Público ingresan con código.
+3. Coordinación aprueba tres solicitudes.
+4. Confirmar cuatro nodos conectados y agente Windows `online`.
+5. Pulsar **Iniciar sesión**. Desde aquí flujo avanza automáticamente.
+6. Víctima elige perfil y decide.
+7. Atacante solicita pantalla.
+8. Víctima permite pantalla y elige explícitamente monitor completo.
+9. Atacante espera vídeo `LIVE`; solicita control.
+10. Víctima concede mouse/teclado. Esperar cuenta regresiva.
+11. Atacante activa control y ejecuta solo guion aprobado.
 
-## Ritmo de 15 minutos
+## Guion técnico de impacto
 
-| Tiempo      | Escena       | Meta                                                     |
-| ----------- | ------------ | -------------------------------------------------------- |
-| 00:00–02:00 | Entrada      | Elegir identidad ficticia; explicar que decide visitante |
-| 02:00–05:00 | Engaño       | Mensaje, urgencia, decisión                              |
-| 05:00–08:00 | Permisos     | Pantalla, control y permisos narrativos                  |
-| 08:00–10:30 | Otro lado    | Acción real limitada o simulación segura                 |
-| 10:30–12:30 | Revelación   | Dos perspectivas, cronología, consecuencias              |
-| 12:30–14:20 | Recuperación | Ordenar y completar seis pasos                           |
-| 14:20–15:00 | Cierre       | Pregunta final y prevención                              |
+- Mover cursor.
+- Abrir Inicio mediante botón permitido.
+- Abrir Bloc de notas por interfaz.
+- Escribir mensaje educativo.
+- Abrir Explorador.
+- Navegar a `C:\HACKEADO-DEMO`.
+- Abrir y renombrar archivo ficticio.
+- Cambiar ventana con botón `Alt+Tab`.
+- Pulsar **Revelación**.
 
-Si quedan menos de dos minutos, usar **Cierre rápido**. Nunca omitir cómo detener y reportar.
+No usar shell, UAC, credenciales, aplicaciones personales ni rutas fuera del material ficticio.
 
-## Transmisión WebRTC real
+## Cierre y recuperación
 
-Solo tras aprobación docente y prueba física. La captura requiere `localhost` o HTTPS; consultar `16-webrtc-transmision-y-control-web.md`.
+1. Revelación revoca entrada antes de cambiar escena.
+2. Víctima pulsa **Detener y recuperar**.
+3. Público ordena seis pasos.
+4. Víctima completa recuperación.
+5. Coordinación pulsa **Finalizar ronda** si hace falta.
+6. Confirmar `input: revoked`, `media: ended`.
+7. Reiniciar; código y tokens deben rotar.
+8. Restaurar archivos o snapshot antes de siguiente grupo.
 
-1. Víctima concede pantalla y control narrativo de forma visible.
-2. Coordinación completa los siete checks y pulsa **Armar canal WebRTC**.
-3. Víctima pulsa **Compartir esta pestaña** y elige únicamente HACKEADO.
-4. Atacante confirma video y telemetría; coordinación marca `screen` y `control`.
-5. Mantener visible **Detener transmisión** en Windows.
-6. El mouse y teclado funcionan solamente dentro del escritorio web ficticio.
-7. Víctima detiene; coordinación confirma `ending` y `ended`.
-8. La siguiente ronda requiere código nuevo y una autorización nueva.
+Meta de reset operativo: menos de dos minutos incluyendo restauración necesaria.
 
-## Entre rondas
+## Paradas
 
-1. Confirmar estado remoto `ended`.
-2. Cerrar ventanas y restaurar escritorio ficticio.
-3. Pulsar **Reiniciar ronda**.
-4. Confirmar código nuevo y tokens anteriores revocados.
-5. Volver a aprobar los tres roles.
-6. Objetivo: menos de 30 segundos.
+- Víctima: botón rojo WPF.
+- Víctima: `Ctrl+Shift+F12`.
+- Atacante: **Liberar control** o **PARADA TOTAL**.
+- Coordinación: **PARADA TOTAL**.
 
-## Cierre diario
-
-1. Ejecutar parada de emergencia si queda cualquier sesión activa.
-2. Cerrar herramienta remota y deshabilitar cualquier opción de inicio automático.
-3. Detener servidor con `Ctrl+C`.
-4. Eliminar `.env` si contiene direcciones específicas del montaje.
-5. Borrar copias temporales, códigos fotografiados y grabaciones de ensayo.
-6. Restaurar suspensión, red y notificaciones de ambos equipos.
+Después de cualquier parada, reconectar vídeo no reactiva entrada. Se requiere solicitud y consentimiento nuevos.
 
 ## Comandos
 
-| Comando                     | Uso                                   |
-| --------------------------- | ------------------------------------- |
-| `sh scripts/start-demo.sh`  | Inicia versión de producción          |
-| `sh scripts/verify-demo.sh` | Preflight completo, diez rondas y E2E |
-| `npm run dev`               | Desarrollo solamente                  |
-| `npm run check`             | Tipos, lint, unitarias y build        |
-| `npm run test:e2e`          | Flujos de navegador                   |
-| `npm run package:offline`   | Genera paquete autocontenido para Mac |
-| `npm run record:backup`     | Regenera video WebM de respaldo       |
+| Comando                                     | Uso                                          |
+| ------------------------------------------- | -------------------------------------------- |
+| `npm run start:expo`                        | Arranque estricto HTTPS + agente obligatorio |
+| `npm run verify:release`                    | Suite, build, diez rondas, E2E y activos     |
+| `npm run verify:live-network`               | Valida HTTPS, WSS y latencia en LAN final    |
+| `npm run package:offline`                   | Paquete Mac con dependencias de producción   |
+| `./scripts/windows/package-victim-host.ps1` | Prueba, publica y empaqueta agente Windows   |
+| `npm run record:backup`                     | Regenera vídeo local                         |
+
+## Cierre diario
+
+1. Parada total.
+2. Confirmar overlay cerrado y Mac sin entrada.
+3. Cerrar Victim Host.
+4. Detener servidor.
+5. Retirar `.env`, certificados privados y configuración local del transporte.
+6. Restaurar snapshot.
+7. Registrar incidentes y resultados físicos.

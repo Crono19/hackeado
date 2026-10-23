@@ -1,10 +1,13 @@
 import { roleRoutes } from './routes';
 import { RoleDashboard } from './components/RoleDashboard';
 import { StateMachineDebug } from './components/StateMachineDebug';
+import { releaseInfo } from '../shared/release';
+
+const debugEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEBUG_UI === 'true';
 
 export function App() {
   const route = roleRoutes.find((item) => item.path === window.location.pathname);
-  const isDebug = window.location.pathname === '/debug';
+  const isDebug = debugEnabled && window.location.pathname === '/debug';
 
   return (
     <main id="main-content" className="app-shell">
@@ -16,7 +19,7 @@ export function App() {
           HACKEADO<span aria-hidden="true">_</span>
         </a>
         <span className="status-chip">
-          <i aria-hidden="true" /> DEMO CONTROLADA // RC 00—19
+          <i aria-hidden="true" /> {releaseInfo.channel} // SPRINT {releaseInfo.completedSprint}
         </span>
       </header>
 
@@ -64,11 +67,32 @@ function Home() {
         ))}
       </nav>
 
-      <a className="debug-entry" href="/debug">
-        <span>DEV://STATE_ENGINE</span>
-        <strong>Abrir consola de dominio</strong>
-        <i aria-hidden="true">↗</i>
-      </a>
+      <section className="release-telemetry" aria-label="Estado de versión candidata">
+        <div>
+          <span>BUILD</span>
+          <strong>{releaseInfo.version}</strong>
+        </div>
+        <div>
+          <span>VIDEO</span>
+          <strong>WEBRTC P2P</strong>
+        </div>
+        <div>
+          <span>INPUT</span>
+          <strong>LEASE LOCKED</strong>
+        </div>
+        <div>
+          <span>FAILSAFE</span>
+          <strong>4 CHANNELS</strong>
+        </div>
+      </section>
+
+      {debugEnabled && (
+        <a className="debug-entry" href="/debug">
+          <span>DEV://STATE_ENGINE</span>
+          <strong>Abrir consola de dominio</strong>
+          <i aria-hidden="true">↗</i>
+        </a>
+      )}
 
       <footer className="hero-footer">
         <span>Demostración controlada</span>

@@ -4,7 +4,7 @@ Todos conocen parada, reinicio y Plan B. Roles rotables después del ensayo.
 
 | Integrante                            | Responsabilidad principal   | Frase/acción clave                                           |
 | ------------------------------------- | --------------------------- | ------------------------------------------------------------ |
-| Pablo Andrés Mazariegos Hernández     | Coordinación general        | Inicia sesión, reloj, escenas y failsafe                     |
+| Pablo Andrés Mazariegos Hernández     | Coordinación general        | Inicia sesión/reloj y opera failsafe; no dirige escenas      |
 | Juan Diego Marroquin Escobar          | Pitch y teoría              | Explica acceso remoto, spyware y permisos en lenguaje simple |
 | Roberto Alejandro Calderón Martínez   | Falso soporte               | Interpreta llamada/mensaje con urgencia controlada           |
 | Luis Hervert Damian Martinez          | Panel atacante              | Solicita solo acciones permitidas y diferencia real/simulado |
@@ -68,7 +68,7 @@ Karla cierra: “Si sospechas: detén, desconecta, protege desde otro equipo y r
 
 ## Cierre rápido de dos minutos
 
-1. Pablo activa cierre rápido.
+1. Pablo anuncia cierre rápido y finaliza cualquier acceso activo.
 2. Roger resume doble perspectiva en 25 segundos.
 3. Josué nombra tres consecuencias en 20 segundos.
 4. Karla presenta seis pasos en 45 segundos.

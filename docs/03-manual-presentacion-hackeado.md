@@ -50,7 +50,7 @@ El mensaje de salida debe ser práctico, no simplemente alarmante:
 
 El visitante interpreta a **Alex Rivera**, estudiante ficticio. Alex recibe un mensaje de “Campus One — Soporte técnico” que afirma haber detectado un problema urgente en su cuenta académica. Para “resolverlo”, un supuesto técnico solicita observar y controlar la computadora.
 
-El visitante toma decisiones. Si concede acceso, un integrante controla realmente el equipo Windows desde un Mac mediante una herramienta legítima de soporte remoto y con autorización visible. Todos los documentos son ficticios. Riesgos como cámara, micrófono, portapapeles o robo de sesión se representan solamente mediante la aplicación.
+El visitante toma decisiones. Si concede acceso, un integrante controla realmente la VM Windows desde un Mac mediante `HACKEADO Victim Host`, aplicación propia, visible y con autorización separada. Todos los documentos son ficticios. Riesgos como cámara, micrófono, portapapeles o robo de sesión se representan solamente mediante la aplicación.
 
 Después, el escenario se congela y el público descubre el panel del atacante: permisos, cronología, acciones y consecuencias. Finalmente, los visitantes deben recuperar el control en el orden correcto.
 
@@ -69,7 +69,7 @@ Normalidad → Mensaje urgente → Decisión → Pérdida de control
 
 ### Pitch de 60 segundos para el docente
 
-> “Nuestra estación demuestra cómo una solicitud de soporte aparentemente normal puede convertirse en acceso remoto peligroso. Utilizamos una aplicación propia con cuatro paneles sincronizados: víctima, atacante, público y coordinación. El control de mouse y teclado puede ser real, pero se realiza únicamente sobre una cuenta ficticia, mediante una herramienta legítima, con autorización visible y sin acceso desatendido. Cámara, micrófono, contraseñas y extracción de información son simulaciones. Los visitantes toman decisiones, observan ambos lados del incidente y terminan resolviendo un reto de contención y recuperación. Contamos con modo simulado, video y dinámica física como alternativas técnicas.”
+> “Nuestra estación demuestra cómo una solicitud de soporte aparentemente normal puede convertirse en acceso remoto peligroso. Utilizamos una aplicación propia con cuatro paneles sincronizados y un agente Windows visible. Mouse y teclado funcionan realmente dentro de una VM ficticia, mediante consentimiento separado, lease temporal y parada local; no existe acceso desatendido. Cámara, micrófono, contraseñas y extracción son simulaciones. Los visitantes deciden, observan ambos lados y recuperan el control. Contamos con modo simulado, vídeo y dinámica física como contingencia.”
 
 ### Frase gancho opcional
 
@@ -131,7 +131,7 @@ Entrada
 - Altavoz opcional.
 - Mouse externo para Windows.
 - Copia local de la aplicación.
-- Herramienta de asistencia remota aprobada.
+- Paquete verificado de `HACKEADO Victim Host`.
 - Video de respaldo guardado localmente.
 
 ### Material físico
@@ -363,7 +363,7 @@ No debe castigarse la buena decisión.
    > “Tomaste la decisión correcta. Para que todos veamos el riesgo, mostraremos una línea temporal alternativa con nuestro equipo de demostración.”
 
 4. Un integrante del grupo autoriza la conexión sobre Windows.
-5. Se ejecuta una secuencia breve o totalmente simulada.
+5. Se utiliza exclusivamente el modo simulado o el vídeo de respaldo; no se contradice la decisión segura del visitante.
 6. El visitante conserva los puntos por haber evitado el acceso.
 
 ### Ruta B — Comparte pantalla, pero rechaza control
@@ -804,7 +804,7 @@ Frase:
 
 ### Regla de confirmación
 
-La aplicación puede mostrar “control terminado” únicamente después de que Luis confirme que la herramienta externa se desconectó.
+La aplicación muestra “control terminado” únicamente después de revocar lease y liberar entrada; Luis confirma además que Mac ya no responde sobre Windows.
 
 ### Parada de emergencia
 

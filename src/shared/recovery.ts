@@ -191,7 +191,19 @@ function assertRecoveryPhase(session: DemoSession) {
 function forceSimulatedEnd(session: DemoSession, now: number): DemoSession {
   return {
     ...session,
-    remote: { ...session.remote, status: 'ended', endedAt: now },
+    remote: {
+      ...session.remote,
+      status: 'ended',
+      input: {
+        ...session.remote.input,
+        status: 'revoked',
+        leaseId: undefined,
+        expiresAt: undefined,
+      },
+      media: { ...session.remote.media, status: 'ended', endedAt: now },
+      stopReason: 'victim',
+      endedAt: now,
+    },
     revision: session.revision + 1,
     updatedAt: now,
   };

@@ -13,7 +13,13 @@ import {
   storySignalKeys,
   recoveryStepKeys,
   remoteChecklistKeys,
+  remoteStopReasons,
 } from './types.js';
+import {
+  remotePointerButtons,
+  remoteProtocolVersion,
+  remoteShortcutIds,
+} from './remote-protocol.js';
 
 export const experienceRoleSchema = z.enum(experienceRoles);
 export const experiencePhaseSchema = z.enum(experiencePhases);
@@ -48,6 +54,135 @@ export const socketEventBaseSchema = z.object({
   eventId: z.string().trim().min(8).max(100),
   sessionId: z.string().trim().min(1).max(80),
 });
+
+export const agentCapabilitiesSchema = z.object({
+  nativeBridge: z.boolean(),
+  desktopCapture: z.boolean(),
+  pointer: z.boolean(),
+  keyboard: z.boolean(),
+  wheel: z.boolean(),
+  emergencyHotkey: z.boolean(),
+  displayCount: z.number().int().min(1).max(16),
+  screenWidth: z.number().int().min(640).max(16_384),
+  screenHeight: z.number().int().min(480).max(16_384),
+  dpiScale: z.number().min(0.5).max(4),
+});
+
+const deviceIdSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(80)
+  .regex(/^[A-Za-z0-9._-]+$/);
+const agentIdSchema = z.string().trim().min(16).max(100);
+const leaseIdSchema = z.string().trim().min(16).max(100);
+
+export const agentRegisterSchema = socketEventBaseSchema.extend({
+  deviceId: deviceIdSchema,
+  agentKey: z.string().min(16).max(256),
+  version: z.string().trim().min(1).max(40),
+  capabilities: agentCapabilitiesSchema,
+});
+
+export const agentHeartbeatSchema = socketEventBaseSchema.extend({
+  agentId: agentIdSchema,
+});
+
+export const agentCapabilitiesUpdateSchema = socketEventBaseSchema.extend({
+  agentId: agentIdSchema,
+  capabilities: agentCapabilitiesSchema,
+});
+
+export const controlRequestSchema = socketEventBaseSchema;
+
+export const controlGrantSchema = socketEventBaseSchema.extend({
+  approved: z.literal(true),
+});
+
+export const controlActivateSchema = socketEventBaseSchema.extend({
+  leaseId: leaseIdSchema,
+});
+
+export const controlRevokeSchema = socketEventBaseSchema.extend({
+  reason: z.enum(remoteStopReasons),
+});
+
+export const controlHeartbeatSchema = socketEventBaseSchema.extend({
+  leaseId: leaseIdSchema,
+});
+
+export const remoteQualitySchema = socketEventBaseSchema.extend({
+  width: z.number().int().min(0).max(16_384),
+  height: z.number().int().min(0).max(16_384),
+  fps: z.number().min(0).max(240),
+  bitrateKbps: z.number().min(0).max(100_000),
+  packetsLost: z.number().int().min(0),
+  roundTripMs: z.number().min(0).max(60_000),
+});
+
+const remoteMessageBase = z.object({
+  version: z.literal(remoteProtocolVersion),
+  sessionId: z.string().trim().min(1).max(80),
+  leaseId: leaseIdSchema,
+  sequence: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+  sentAt: z.number().int().min(0),
+});
+
+const normalizedPoint = {
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+};
+
+export const remoteControlMessageSchema = z.discriminatedUnion('type', [
+  remoteMessageBase.extend({ type: z.literal('pointer.move'), ...normalizedPoint }),
+  remoteMessageBase.extend({
+    type: z.literal('pointer.down'),
+    ...normalizedPoint,
+    button: z.enum(remotePointerButtons),
+  }),
+  remoteMessageBase.extend({
+    type: z.literal('pointer.up'),
+    ...normalizedPoint,
+    button: z.enum(remotePointerButtons),
+  }),
+  remoteMessageBase.extend({
+    type: z.literal('pointer.wheel'),
+    ...normalizedPoint,
+    deltaX: z.number().min(-10_000).max(10_000),
+    deltaY: z.number().min(-10_000).max(10_000),
+  }),
+  remoteMessageBase.extend({
+    type: z.literal('keyboard.down'),
+    code: z.string().trim().min(1).max(64),
+    key: z.string().max(32),
+    repeat: z.boolean(),
+    altKey: z.boolean(),
+    ctrlKey: z.boolean(),
+    shiftKey: z.boolean(),
+    metaKey: z.boolean(),
+  }),
+  remoteMessageBase.extend({
+    type: z.literal('keyboard.up'),
+    code: z.string().trim().min(1).max(64),
+    key: z.string().max(32),
+    repeat: z.boolean(),
+    altKey: z.boolean(),
+    ctrlKey: z.boolean(),
+    shiftKey: z.boolean(),
+    metaKey: z.boolean(),
+  }),
+  remoteMessageBase.extend({ type: z.literal('keyboard.releaseAll') }),
+  remoteMessageBase.extend({
+    type: z.literal('keyboard.shortcut'),
+    shortcut: z.enum(remoteShortcutIds),
+    text: z.string().max(500).optional(),
+  }),
+  remoteMessageBase.extend({ type: z.literal('control.heartbeat') }),
+  remoteMessageBase.extend({
+    type: z.literal('control.release'),
+    reason: z.enum(['attacker', 'victim']),
+  }),
+]);
 
 export const permissionAnswerSchema = socketEventBaseSchema.extend({
   permission: permissionKeySchema,

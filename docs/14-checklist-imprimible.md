@@ -1,67 +1,64 @@
-# HACKEADO — Checklist imprimible
+# HACKEADO — Checklist imprimible EXPO RC
 
-## Antes de abrir
+## Montaje
 
-- [ ] Mac, Windows, proyector y audio conectados a energía.
-- [ ] Router/red autorizada funcionando sin depender de Internet.
-- [ ] Cuenta Windows ficticia y sin privilegios.
-- [ ] Cuentas, notificaciones y archivos personales cerrados.
-- [ ] `sh scripts/verify-demo.sh` termina en `PREFLIGHT PASS`.
-- [ ] Video y reproductor offline abren.
-- [ ] Seis tarjetas físicas disponibles.
-- [ ] Docente conoce límites real/simulado/prohibido.
+- [ ] Snapshot limpio restaurado.
+- [ ] `VictimaDemo` es usuario estándar.
+- [ ] Datos personales, nube, portapapeles y carpetas compartidas ausentes.
+- [ ] Router privado, energía, HDMI y cable de red de respaldo listos.
+- [ ] Certificado HTTPS confiable en Windows.
+- [ ] Paquetes Mac/Windows coinciden con SHA-256 registrado.
+- [ ] Vídeo WebM abre sin red.
 
-## Prevuelo de control remoto real
+## Preflight
 
-- [ ] Cuenta ficticia exclusiva.
-- [ ] Sesiones personales cerradas.
-- [ ] Acceso desatendido desactivado.
-- [ ] Transferencia de archivos desactivada.
-- [ ] Portapapeles compartido desactivado.
-- [ ] Elevación administrativa desactivada.
-- [ ] Botón **Detener / Stop sharing** visible.
-- [ ] Código de soporte nuevo y temporal.
+- [ ] `npm run verify:release` termina en `PREFLIGHT PASS`.
+- [ ] `verify-demo-vm.ps1` termina aprobado.
+- [ ] `verify:live-network` confirma HTTPS + WSS.
+- [ ] Victim Host muestra `BRIDGE://READY`.
+- [ ] DevTools desactivado.
+- [ ] `REQUIRE_NATIVE_AGENT=true`.
+- [ ] Botón WPF y `Ctrl+Shift+F12` probados.
+- [ ] Parada desde Atacante y Coordinación probada.
 
-## Antes de cada ronda
+## Cada ronda
 
-- [ ] Sesión anterior figura `ended`.
-- [ ] Código y tokens nuevos.
-- [ ] Víctima, atacante, público y coordinación conectados.
-- [ ] Escritorio ficticio restaurado.
-- [ ] Proyector en 1920 × 1080 o resolución comprobada.
-- [ ] Audio probado y subtítulo visible.
-- [ ] Cronómetro en 15:00.
-- [ ] Responsable de emergencia identificado.
+- [ ] Código nuevo.
+- [ ] Cuatro roles conectados.
+- [ ] Agente `online`; vídeo e input todavía apagados.
+- [ ] Temporizador 15:00.
+- [ ] Visitante informado: identidad y datos ficticios.
+- [ ] Pantalla y control se piden por separado.
+- [ ] Overlay rojo permanece visible durante control.
+- [ ] Operador usa solo acciones del guion.
+- [ ] Revelación revoca input.
+- [ ] Recuperación incluye prevención y reporte.
 
-## Durante
+## Entre rondas
 
-- [ ] Visitante toma decisión sin presión del grupo.
-- [ ] Cada permiso se lee antes de responder.
-- [ ] Acciones reales y simuladas se distinguen.
-- [ ] No aparece información personal.
-- [ ] Barra de detención permanece visible.
-- [ ] Revelación explica ambos lados.
-- [ ] Recuperación termina con reporte.
+- [ ] `input: revoked`.
+- [ ] `media: ended`.
+- [ ] Mouse/teclado locales responden.
+- [ ] Archivos ficticios restaurados o snapshot aplicado.
+- [ ] Reset rota código y tokens.
+- [ ] Bienvenida lista en menos de dos minutos.
 
-## Entre rondas — meta menor de 30 segundos
+## Plan B
 
-- [ ] Terminar herramienta externa.
-- [ ] Confirmar `ended`.
-- [ ] Cerrar/restaurar archivos ficticios.
-- [ ] Reiniciar sesión.
-- [ ] Confirmar código rotado.
-- [ ] Aprobar roles nuevos.
-- [ ] Volver a bienvenida.
+- [ ] Responsable sabe activar respaldo.
+- [ ] Tarjetas físicas ordenadas.
+- [ ] Nadie llama “control real” al vídeo.
+- [ ] Pregunta final conservada.
 
-## Cierre del día
+## Cierre
 
-- [ ] Parada segura ejecutada.
+- [ ] Parada total.
+- [ ] Victim Host cerrado.
 - [ ] Servidor detenido.
-- [ ] Herramienta remota cerrada/sin inicio automático.
-- [ ] Códigos y temporales eliminados.
-- [ ] Configuración de red/suspensión restaurada.
-- [ ] Incidentes reportados al docente.
+- [ ] `.env`, secretos y certificados privados retirados.
+- [ ] Snapshot restaurado.
+- [ ] Incidentes y diez rondas firmados.
 
-Firma coordinación: ____________________ Hora: __________
+Coordinación: ____________________ Seguridad: ____________________
 
-Firma seguridad: _______________________ Ronda: _________
+Fecha: __________ Hora: __________ RC/SHA-256: ____________________

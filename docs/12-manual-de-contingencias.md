@@ -1,58 +1,49 @@
-# Manual de contingencias
+# Manual de contingencias — HACKEADO EXPO RC
 
-## Regla principal
+## Regla
 
-Falla técnica nunca justifica ampliar permisos, improvisar con datos reales ni ocultar el control a la víctima. Si algo no es verificable: detener, pasar a simulación y continuar historia.
+Fallo técnico nunca amplía permisos. Primero revocar entrada. Después recuperar vídeo o activar respaldo.
 
-## Matriz de respuesta
+## Matriz
 
-| Incidente                | Acción inmediata                          | Continuación                                     | Responsable           |
-| ------------------------ | ----------------------------------------- | ------------------------------------------------ | --------------------- |
-| Windows pierde red       | Pausar reloj; cerrar control remoto       | Coordinación activa simulación; público continúa | Coordinación          |
-| Mac pierde red local     | Detener herramienta externa desde Windows | Usar video + tarjetas físicas                    | Víctima/operador      |
-| Socket desconectado      | Pulsar **Reintentar enlace**              | Estado se restaura desde servidor                | Operador del panel    |
-| Herramienta remota falla | Confirmar cierre visible                  | Motor de simulación                              | Operador              |
-| Proyector falla          | Mantener revelación oral                  | Abrir respaldo en Mac/Windows                    | Público               |
-| Audio falla              | Mostrar subtítulos; continuar sin audio   | Marcar audio pendiente                           | Coordinación          |
-| Navegador se congela     | Recargar una vez                          | Token restaura estado                            | Responsable del panel |
-| Tiempo insuficiente      | Activar **Cierre rápido**                 | Revelación + recuperación + pregunta             | Control de tiempo     |
-| Servidor cae             | Detener todo acceso real                  | Video WebM + seis tarjetas                       | Coordinación          |
-| Dato personal aparece    | Parada de emergencia; retirar proyección  | Cerrar apps, informar docente, no fotografiar    | Todo el grupo         |
+| Incidente                   | Acción inmediata                              | Continuación                           |
+| --------------------------- | --------------------------------------------- | -------------------------------------- |
+| Windows pierde red          | Botón WPF o hotkey; confirmar overlay cerrado | Activar respaldo local                 |
+| Mac pierde red              | Víctima detiene localmente                    | Vídeo + tarjetas                       |
+| Socket.IO cae               | Entrada se revoca; no insistir con mouse      | Reintentar enlace solo para estado     |
+| WebRTC pierde vídeo         | Liberar control; mostrar `SIN SEÑAL`          | Reintentar solo pantalla               |
+| Atacante se cierra          | Servidor revoca lease                         | Víctima inicia recuperación            |
+| Victim Host se cierra       | Watchdog/cleanup libera entrada               | Reiniciar agente; consentimiento nuevo |
+| Windows se bloquea/suspende | Monitor nativo detiene                        | Reiniciar ronda                        |
+| Servidor reinicia           | Sesiones y leases anteriores desaparecen      | Crear código nuevo                     |
+| Proyector falla             | Mantener explicación oral                     | Abrir vídeo en segunda pantalla        |
+| Datos reales aparecen       | Parada total y retirar proyección             | Informar docente; no fotografiar       |
+| Latencia alta               | Liberar entrada antes de ajustar red          | Modo simulado                          |
+| Tiempo menor a 2 min        | Revelar, recuperar y preguntar                | Omitir efectos, nunca prevención       |
 
-## Plan B sin Internet
+## Activar respaldo
 
-1. Mantener Mac y Windows en router local.
-2. Ejecutar paquete offline; no necesita CDN, fuentes web ni nube.
-3. Usar modo `simulated`.
-4. Si tampoco hay red local, abrir `public/fallback/respaldo.html` o `public/fallback/hackeado-respaldo.webm` directamente.
-5. Entregar las seis tarjetas físicas desordenadas.
-6. Visitantes ordenan: detener, revocar, contraseñas, sesiones, 2FA, revisar/reportar.
-7. Cerrar con pregunta: “¿Cuándo comenzó realmente?”
+1. Coordinación pulsa **Activar respaldo**.
+2. Sistema termina WebRTC y revoca input.
+3. Atacante/Público reproducen `public/fallback/hackeado-respaldo.webm`.
+4. Grupo continúa revelación, consecuencias y recuperación.
+5. Nadie presenta vídeo como control vivo.
 
-## Parada de emergencia
+## Recuperar modo live
 
-Usarla ante contenido no previsto, confusión, pérdida de control, dato real, participante incómodo o duda del docente. La parada:
+1. Confirmar `remote: ended` e `input: revoked`.
+2. Cerrar Victim Host.
+3. Restaurar snapshot si hubo cambios inesperados.
+4. Ejecutar `verify-demo-vm.ps1`.
+5. Comprobar HTTPS/WSS con `verify:live-network`.
+6. Crear sesión nueva.
+7. Repetir consentimiento desde cero.
 
-- termina estado remoto;
-- revoca permisos activos;
-- cancela simulaciones;
-- pausa reloj;
-- muestra estado seguro en todos los paneles.
+## Plan sin red
 
-Después: verificar herramienta externa manualmente. La app no puede cerrarla por sí sola.
+- Abrir `public/fallback/respaldo.html` o vídeo WebM.
+- Usar tarjetas físicas.
+- Representar mensaje y decisiones.
+- Ordenar: detener → revocar → proteger cuentas → cerrar sesiones → MFA → revisar/reportar.
 
-## Recuperación de servicio
-
-1. Confirmar `ended` físicamente y en coordinación.
-2. Verificar cuenta ficticia y ausencia de apps personales.
-3. Ejecutar reset.
-4. Generar nuevos accesos.
-5. Probar una ronda simulada corta.
-6. Reanudar público solo si responsable técnico confirma estado seguro.
-
-## Recursos offline
-
-- Reproductor interactivo: `public/fallback/respaldo.html`.
-- Video: `public/fallback/hackeado-respaldo.webm`.
-- Checklist impreso: `docs/14-checklist-imprimible.md`.
-- Guion humano: `docs/13-guion-por-integrante.md`.
+Nunca improvisar otra herramienta remota.

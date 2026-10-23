@@ -36,4 +36,13 @@ describe('attacker action catalog', () => {
     expect(available).toContain('request_files');
     expect(available).not.toContain('request_unattended');
   });
+
+  it('reserves live keyboard consent for the native control request', () => {
+    let session = { ...atPermissions(), mode: 'live' as const };
+    session = executeAttackerAction(session, 'request_screen', 1_100);
+    session = answerPermission(session, 'screen', 'granted', 1_200);
+    expect(getAvailableAttackerActions(session).map((action) => action.id)).not.toContain(
+      'request_keyboard',
+    );
+  });
 });

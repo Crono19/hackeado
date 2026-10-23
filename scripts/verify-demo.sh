@@ -13,10 +13,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "01/04 QUALITY // tipos, lint, unitarias, build"
+echo "01/05 QUALITY // tipos, lint, unitarias, build"
 npm run check
 
-echo "02/04 SERVER // arranque aislado"
+echo "02/05 SERVER // arranque aislado"
 HOST=127.0.0.1 PORT="$DEMO_PORT" CLIENT_ORIGIN="$DEMO_URL" npm start >"$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
@@ -30,14 +30,23 @@ until curl -fsS "$DEMO_URL/api/health" >/dev/null; do
   sleep 0.25
 done
 
-echo "03/04 STRESS // diez rondas consecutivas"
+echo "03/05 STRESS // diez rondas automáticas consecutivas"
 HACKEADO_URL="$DEMO_URL" npm run verify:ten-rounds
 
 cleanup
 SERVER_PID=""
 
-echo "04/04 BROWSER // flujos y responsive"
+echo "04/05 BROWSER // flujos y responsive"
 npm run test:e2e
+
+echo "05/05 RELEASE // artefactos, respaldo y configuración"
+npm run verify:assets
+
+if command -v dotnet >/dev/null 2>&1 && [ "${OS:-}" = "Windows_NT" ]; then
+  dotnet test apps/windows-agent/Hackeado.VictimHost.sln -c Release
+else
+  echo "WINDOWS // validación C# y publicación pendientes en VM Windows"
+fi
 
 echo "HACKEADO RC // PREFLIGHT PASS"
 

@@ -102,9 +102,14 @@ export function RoleDashboard({ route }: { route: RoleRoute }) {
         </div>
       )}
       {credentials && error && (
-        <div className="connection-alert" role="alert">
+        <div className={`connection-alert connection-alert--${route.role}`} role="alert">
           <span>ENLACE INTERRUMPIDO // {error}</span>
-          <strong>La escena queda congelada; no se pierde el estado.</strong>
+          <strong>{disconnectMessage(route.role)}</strong>
+          <small>
+            {route.role === 'victim' || route.role === 'attacker'
+              ? 'Reconectar servidor no reactiva mouse ni teclado. Control exige consentimiento nuevo.'
+              : 'Usa respaldo local si enlace no regresa.'}
+          </small>
           <Button variant="ghost" onClick={reconnect}>
             ↻ Reintentar enlace
           </Button>
@@ -115,4 +120,13 @@ export function RoleDashboard({ route }: { route: RoleRoute }) {
       </a>
     </section>
   );
+}
+
+function disconnectMessage(role: RoleRoute['role']) {
+  return {
+    victim: 'Entrada remota revocada. Conservas control local del equipo.',
+    attacker: 'Mouse y teclado liberados. Solo vídeo puede reintentarse.',
+    audience: 'Pausa técnica. Historia puede continuar con respaldo.',
+    coordinator: 'Paneles sin enlace. Activa contingencia local.',
+  }[role];
 }

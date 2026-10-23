@@ -26,25 +26,25 @@ export const attackerActions: AttackerActionDefinition[] = [
   permissionAction('request_unattended', 'unattended', 'Simular acceso permanente', true),
   {
     id: 'mark_remote_ready',
-    label: 'Canal WebRTC preparado',
-    description: 'Confirma que la víctima puede iniciar la captura visible.',
-    nature: 'real',
+    label: 'Preparar enlace simulado',
+    description: 'Respaldo local: prepara el canal ficticio cuando no hay agente Windows.',
+    nature: 'simulated',
     highImpact: false,
     allowedPhases: ['connecting'],
   },
   {
     id: 'confirm_screen',
-    label: 'Confirmar pantalla compartida',
-    description: 'Marca que el video WebRTC llegó de forma visible al panel atacante.',
-    nature: 'real',
+    label: 'Simular pantalla recibida',
+    description: 'Respaldo local: representa la llegada de vídeo sin capturar el sistema.',
+    nature: 'simulated',
     highImpact: true,
     allowedPhases: ['connecting'],
   },
   {
     id: 'confirm_control',
-    label: 'Confirmar control concedido',
-    description: 'Habilita mouse y teclado únicamente dentro del escritorio web de HACKEADO.',
-    nature: 'real',
+    label: 'Simular control concedido',
+    description: 'Respaldo local: activa el escritorio ficticio, sin controlar el sistema.',
+    nature: 'simulated',
     highImpact: true,
     allowedPhases: ['connecting'],
   },
@@ -72,10 +72,18 @@ export function getAvailableAttackerActions(session: DemoSession): AttackerActio
   return attackerActions.filter((action) => {
     if (!action.allowedPhases.includes(session.phase)) return false;
     const permission = permissionByAction[action.id];
-    if (permission) return canRequestPermission(session, permission);
+    if (permission) {
+      if (session.mode === 'live' && permission === 'keyboard') return false;
+      return canRequestPermission(session, permission);
+    }
     if (action.id === 'scan_case') {
       return !session.timeline.some((event) => event.message === action.label);
     }
+    if (
+      session.mode === 'live' &&
+      ['mark_remote_ready', 'confirm_screen', 'confirm_control'].includes(action.id)
+    )
+      return false;
     if (action.id === 'mark_remote_ready') return session.remote.status === 'idle';
     if (action.id === 'confirm_screen') return session.remote.status === 'ready';
     if (action.id === 'confirm_control') {

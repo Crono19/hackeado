@@ -1,0 +1,8 @@
+{
+  "serverUrl": "https://IP-DEL-MAC:3000",
+  "deviceId": "hackeado-windows-vm",
+  "agentKey": "replace-with-at-least-32-random-characters",
+  "displayName": "VM Windows 11 — VictimaDemo",
+  "emergencyHotkey": "Ctrl+Shift+F12",
+  "allowDevTools": false
+}

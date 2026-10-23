@@ -15,8 +15,9 @@ import { getScenario } from '../../api/sessions';
 import { SimulatedDesktop } from '../../components/SimulatedDesktop';
 import { RecoveryChallenge } from '../../components/RecoveryChallenge';
 import { ScoreSummary } from '../../components/ScoreSummary';
-import { Button, Panel } from '../../components/ui';
+import { Button, Panel, StatusBadge } from '../../components/ui';
 import { VictimWebRtcBroadcast } from '../../components/WebRtcSession';
+import { FallbackPlayback } from '../../components/FallbackPlayback';
 
 type Command = <T>(event: string, payload?: Record<string, unknown>) => Promise<SocketAck<T>>;
 
@@ -169,6 +170,7 @@ export function VictimExperience({
       </header>
 
       <main className="demo-desktop__canvas">
+        <IncidentRail session={session} />
         <VictimWebRtcBroadcast session={session} getSocket={getSocket} />
         {['permissions', 'connecting', 'controlled'].includes(session.phase) && (
           <AssistanceBar session={session} command={command} />
@@ -244,6 +246,26 @@ export function VictimExperience({
             </div>
           )}
 
+        {session.phase === 'controlled' && (
+          <ControlActiveAlarm
+            session={session}
+            onStop={() => void command(socketEvents.controlRevoke, { reason: 'victim' })}
+          />
+        )}
+
+        {session.phase === 'reveal' && (
+          <RevealStage
+            session={session}
+            onRecover={() => void command(socketEvents.recoveryBegin)}
+          />
+        )}
+
+        {session.technical.fallbackActive && (
+          <div className="victim-fallback-overlay">
+            <FallbackPlayback />
+          </div>
+        )}
+
         {(session.phase === 'bait' || session.phase === 'decision') && (
           <SupportStage
             session={session}
@@ -279,6 +301,12 @@ export function VictimExperience({
               </div>
             )
           ))}
+
+        {error && (
+          <div className="victim-inline-error" role="alert">
+            {explainVictimError(error)}
+          </div>
+        )}
       </main>
 
       <footer className="demo-desktop__taskbar">
@@ -385,6 +413,25 @@ function SupportStage({
         >
           ⓘ Ver detalles del remitente <span>{showSender ? '−' : '+'}</span>
         </button>
+        <div className="signal-preview" aria-label="Señales que puedes revisar">
+          <span>ANTES DE DECIDIR, REVISA:</span>
+          {(
+            [
+              ['sender', '¿Quién lo envió?'],
+              ['domain', '¿El dominio es oficial?'],
+              ['urgency', '¿Te están apurando?'],
+            ] as const
+          ).map(([signal, label]) => (
+            <button
+              type="button"
+              key={signal}
+              className={session.story.examinedSignals.includes(signal) ? 'is-checked' : ''}
+              onClick={() => void onExamine(signal)}
+            >
+              {session.story.examinedSignals.includes(signal) ? '✓' : '?'} {label}
+            </button>
+          ))}
+        </div>
         {showSender && (
           <div className="sender-forensics">
             <div>
@@ -487,6 +534,9 @@ function PermissionStage({
             </small>
             <h4>{permissionDefinitions[requested.key].label}</h4>
             <blockquote>{permissionDefinitions[requested.key].statedReason}</blockquote>
+            <p className="permission-request__plain">
+              <strong>Si permites:</strong> {permissionDefinitions[requested.key].actualImpact}
+            </p>
             <details>
               <summary>¿Por qué importa este permiso?</summary>
               <p>{permissionDefinitions[requested.key].actualImpact}</p>
@@ -545,6 +595,98 @@ function AssistanceBar({ session, command }: { session: DemoSession; command: Co
   );
 }
 
+function IncidentRail({ session }: { session: DemoSession }) {
+  const stages = [
+    ['bait', 'Mensaje'],
+    ['decision', 'Decisión'],
+    ['permissions', 'Permisos'],
+    ['connecting', 'Conexión'],
+    ['controlled', 'Control'],
+    ['reveal', 'Revelación'],
+    ['recovery', 'Recuperación'],
+    ['result', 'Resultado'],
+  ] as const;
+  const current = stages.findIndex(([phase]) => phase === session.phase);
+  return (
+    <nav className="victim-incident-rail" aria-label="Progreso de experiencia">
+      {stages.map(([phase, label], index) => (
+        <span
+          key={phase}
+          className={index === current ? 'is-active' : index < current ? 'is-past' : ''}
+        >
+          <i />
+          {label}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
+function ControlActiveAlarm({ session, onStop }: { session: DemoSession; onStop: () => void }) {
+  return (
+    <section className="victim-control-alarm" role="alert" aria-live="assertive">
+      <div className="victim-control-alarm__code">
+        REMOTE
+        <br />
+        <strong>ACTIVE</strong>
+      </div>
+      <div>
+        <span>ALGUIEN ESTÁ CONTROLANDO ESTE WINDOWS</span>
+        <h3>Mouse y teclado ya no son solo tuyos.</h3>
+        <p>
+          Operador puede hacer clic, escribir, abrir aplicaciones y modificar archivos ficticios
+          visibles.
+        </p>
+        <small>Botón nativo superior y Ctrl+Shift+F12 siguen bajo control local.</small>
+      </div>
+      <Button variant="danger" onClick={onStop}>
+        ■ DETENER AHORA
+      </Button>
+      <b>{session.remote.input.expiresAt ? 'LEASE TEMPORAL' : 'SIMULACIÓN CONTROLADA'}</b>
+    </section>
+  );
+}
+
+function RevealStage({ session, onRecover }: { session: DemoSession; onRecover: () => void }) {
+  const stopped = session.remote.status === 'ended';
+  return (
+    <section className="victim-reveal-stage" aria-labelledby="victim-reveal-title">
+      <div className="victim-reveal-stage__stamp">
+        BREACH
+        <br />
+        REVEALED
+      </div>
+      <div>
+        <span>LO QUE SUCEDÍA DETRÁS</span>
+        <h3 id="victim-reveal-title">No era “solo soporte”.</h3>
+        <p>
+          Pantalla compartida mostró todo lo visible. Control permitió actuar como persona sentada
+          frente al equipo.
+        </p>
+        <ul>
+          <li>
+            <b>Vio:</b> mensajes, pestañas y nombres de archivos.
+          </li>
+          <li>
+            <b>Pudo hacer:</b> clic, escribir, abrir y cambiar contenido ficticio.
+          </li>
+          <li>
+            <b>Señal clave:</b> urgencia + contacto inesperado + permisos amplios.
+          </li>
+        </ul>
+      </div>
+      <div className="victim-reveal-stage__action">
+        <StatusBadge tone={stopped ? 'ok' : 'danger'}>
+          {stopped ? 'ACCESO DETENIDO' : 'DETENCIÓN PENDIENTE'}
+        </StatusBadge>
+        <Button variant={stopped ? 'primary' : 'danger'} onClick={onRecover}>
+          {stopped ? 'Empezar recuperación →' : 'Detener y recuperar →'}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 function SafeOutcome({ session }: { session: DemoSession }) {
   const verified = session.story.decision?.choice === 'verify';
   return (
@@ -583,4 +725,14 @@ function formatDuration(seconds: number) {
     .padStart(2, '0');
   const remainder = (Math.max(0, seconds) % 60).toString().padStart(2, '0');
   return `${minutes}:${remainder}`;
+}
+
+function explainVictimError(error: string) {
+  const messages: Record<string, string> = {
+    socket_disconnected: 'Conexión perdida. Control local fue revocado; informa a coordinación.',
+    ack_timeout: 'Servidor no respondió. No repitas permisos: espera confirmación.',
+    recovery_not_ready: 'Primero debe mostrarse la revelación.',
+    action_rejected: 'Acción no válida en este momento.',
+  };
+  return messages[error] ?? error;
 }

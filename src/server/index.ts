@@ -1,15 +1,39 @@
 import 'dotenv/config';
-import { createServer } from 'node:http';
+import { readFileSync } from 'node:fs';
+import { createServer as createHttpServer } from 'node:http';
+import { createServer as createHttpsServer } from 'node:https';
 import { Server } from 'socket.io';
 import { createApp } from './app.js';
 import { config } from './config.js';
 import { SessionStore } from './sessions/store.js';
 import { registerSocketGateway } from './sockets/gateway.js';
 import { isRequestOriginAllowed } from './security.js';
+import { AgentRegistry } from './control/agent-registry.js';
+import { ControlLeaseManager } from './control/lease-manager.js';
 
 const store = new SessionStore(config.sessionTtlMs);
-const app = createApp({ store, allowedOrigins: config.allowedOrigins });
-const httpServer = createServer(app);
+const app = createApp({
+  store,
+  allowedOrigins: config.allowedOrigins,
+  enableDebugUi: config.enableDebugUi,
+});
+const secure = Boolean(config.tlsCertPath && config.tlsKeyPath);
+const httpServer = secure
+  ? createHttpsServer(
+      {
+        cert: readFileSync(config.tlsCertPath),
+        key: readFileSync(config.tlsKeyPath),
+        minVersion: 'TLSv1.2',
+      },
+      app,
+    )
+  : createHttpServer(app);
+const agentRegistry = new AgentRegistry({
+  allowedDeviceId: config.demoDeviceId,
+  agentKey: config.demoAgentKey,
+  heartbeatTimeoutMs: config.agentHeartbeatMs * 3,
+});
+const leaseManager = new ControlLeaseManager({ ttlMs: config.controlLeaseMs });
 
 const io = new Server(httpServer, {
   cors: {
@@ -26,7 +50,7 @@ const io = new Server(httpServer, {
   transports: ['websocket', 'polling'],
 });
 
-registerSocketGateway(io, store);
+registerSocketGateway(io, store, { agentRegistry, leaseManager });
 
 const cleanupTimer = setInterval(() => {
   for (const sessionId of store.cleanup()) {
@@ -37,5 +61,7 @@ const cleanupTimer = setInterval(() => {
 cleanupTimer.unref();
 
 httpServer.listen(config.port, config.host, () => {
-  console.log(`HACKEADO server running on http://${config.host}:${config.port}`);
+  console.log(
+    `HACKEADO server running on ${secure ? 'https' : 'http'}://${config.host}:${config.port}`,
+  );
 });

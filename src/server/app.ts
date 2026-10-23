@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import express from 'express';
 import { ZodError } from 'zod';
+import { releaseInfo } from '../shared/release.js';
 import type { HealthResponse } from '../shared/types.js';
 import { createSessionRouter } from './http/sessions.js';
 import { SessionStore, SessionStoreError } from './sessions/store.js';
@@ -17,14 +18,17 @@ export interface AppOptions {
   clientBuildPath?: string;
   store?: SessionStore;
   allowedOrigins?: string[];
+  enableDebugUi?: boolean;
 }
 
-const clientRoutes = ['/', '/victima', '/atacante', '/publico', '/coordinacion', '/debug'];
+const publicClientRoutes = ['/', '/victima', '/atacante', '/publico', '/coordinacion'];
 
 export function buildHealthResponse(now = new Date()): HealthResponse {
   return {
     status: 'ok',
     service: 'hackeado-server',
+    version: releaseInfo.version,
+    release: releaseInfo.channel,
     timestamp: now.toISOString(),
   };
 }
@@ -37,6 +41,9 @@ export function createApp(options: AppOptions = {}) {
     'http://localhost:5174',
     'http://127.0.0.1:5174',
   ];
+  const clientRoutes = options.enableDebugUi
+    ? [...publicClientRoutes, '/debug']
+    : publicClientRoutes;
   const apiLimiter = new SlidingWindowRateLimiter(300);
   const mutationLimiter = new SlidingWindowRateLimiter(120);
 

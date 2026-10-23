@@ -11,6 +11,7 @@ import {
   remoteChecklistKeys,
   type RemoteChecklistKey,
 } from './types.js';
+import { createInitialRemoteControlState } from './remote-state.js';
 
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000;
 const realPermissions = new Set<PermissionKey>(['screen', 'keyboard']);
@@ -42,7 +43,7 @@ export function createInitialSession(options: CreateSessionOptions = {}): DemoSe
     })),
     timeline: [],
     risk: { privacy: 0, deviceControl: 0, accounts: 0, files: 0, recoverability: 100 },
-    remote: { status: 'idle' },
+    remote: createInitialRemoteControlState(),
     timer: {
       durationSeconds: 900,
       remainingSeconds: 900,
@@ -123,6 +124,33 @@ export function updateRemoteStatus(
     remote: {
       ...session.remote,
       status,
+      media: {
+        ...session.remote.media,
+        status:
+          status === 'screen' || status === 'control'
+            ? 'live'
+            : status === 'ended'
+              ? 'ended'
+              : session.remote.media.status,
+        startedAt:
+          status === 'screen' || status === 'control'
+            ? (session.remote.media.startedAt ?? now)
+            : session.remote.media.startedAt,
+        endedAt: status === 'ended' ? now : session.remote.media.endedAt,
+      },
+      input: {
+        ...session.remote.input,
+        status:
+          status === 'control'
+            ? 'active'
+            : status === 'ending' || status === 'ended'
+              ? 'revoked'
+              : session.remote.input.status,
+        leaseId:
+          status === 'ending' || status === 'ended' ? undefined : session.remote.input.leaseId,
+        expiresAt:
+          status === 'ending' || status === 'ended' ? undefined : session.remote.input.expiresAt,
+      },
       screenConfirmedAt:
         status === 'screen' || status === 'control'
           ? (session.remote.screenConfirmedAt ?? now)

@@ -1,4 +1,6 @@
-# WebRTC — transmisión consentida y control web
+# WebRTC — transmisión consentida y control web (documento histórico)
+
+> Sustituido para modo live por `17-especificacion-control-remoto-nativo.md`. Solo conserva contexto de la primera versión y no debe usarse como manual de exposición.
 
 ## Alcance implementado
 

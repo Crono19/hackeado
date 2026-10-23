@@ -1,0 +1,39 @@
+<Window x:Class="Hackeado.VictimHost.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="HACKEADO Victim Host" Width="1440" Height="900" MinWidth="1024" MinHeight="700"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource Carbon}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="58" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="30" />
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="#090D0B" BorderBrush="#33451A" BorderThickness="0,0,0,1">
+      <Grid Margin="18,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="11" Height="11" Background="{StaticResource Acid}" Margin="0,0,12,0" />
+          <TextBlock Text="HACKEADO // VICTIM HOST" Foreground="{StaticResource Paper}" FontFamily="Consolas" FontWeight="Bold" FontSize="15" />
+        </StackPanel>
+        <TextBlock Grid.Column="1" Text="APLICACIÓN VISIBLE · SIN ACCESO DESATENDIDO · USUARIO ESTÁNDAR"
+                   Foreground="#718076" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Consolas" FontSize="11" />
+        <Border Grid.Column="2" BorderBrush="{StaticResource Cyan}" BorderThickness="1" Padding="12,6">
+          <TextBlock x:Name="AgentStatus" Text="AGENTE INICIANDO" Foreground="{StaticResource Cyan}" FontFamily="Consolas" FontWeight="Bold" FontSize="11" />
+        </Border>
+      </Grid>
+    </Border>
+    <wv2:WebView2 x:Name="VictimWebView" Grid.Row="1" DefaultBackgroundColor="#050706" />
+    <Border Grid.Row="2" Background="#BAFF2F">
+      <Grid Margin="12,0">
+        <TextBlock Text="CONTROL LOCAL SIEMPRE DISPONIBLE" Foreground="#050706" VerticalAlignment="Center" FontFamily="Consolas" FontWeight="Bold" FontSize="10" />
+        <TextBlock x:Name="BridgeStatus" Text="BRIDGE://BOOT" Foreground="#050706" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Consolas" FontWeight="Bold" FontSize="10" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

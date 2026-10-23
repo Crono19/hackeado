@@ -2,6 +2,14 @@ import type { Server, Socket } from 'socket.io';
 import { ZodError } from 'zod';
 import {
   attackerActionSchema,
+  agentHeartbeatSchema,
+  agentCapabilitiesUpdateSchema,
+  agentRegisterSchema,
+  controlActivateSchema,
+  controlGrantSchema,
+  controlHeartbeatSchema,
+  controlRequestSchema,
+  controlRevokeSchema,
   decisionSubmitSchema,
   permissionAnswerSchema,
   phaseTransitionRequestSchema,
@@ -9,6 +17,7 @@ import {
   recoveryOrderSchema,
   recoveryStepSchema,
   remoteChecklistSchema,
+  remoteQualitySchema,
   remoteStatusSchema,
   sessionEventSchema,
   signalExamineSchema,
@@ -29,12 +38,40 @@ import {
   validateRecoveryOrder,
 } from '../../shared/recovery.js';
 import { cancelSimulationQueue, enqueueSimulation } from '../../shared/simulation.js';
+import {
+  activateFallbackMode,
+  advanceAfterCapture,
+  advanceAfterControlStop,
+  advanceAfterProfile,
+  advanceAfterScreenConsent,
+  advanceAfterSimulatedControl,
+  beginVictimRecovery,
+  finishExperience,
+  startExperience,
+} from '../../shared/orchestration.js';
 import { emergencyStopSession, transitionSession } from '../../shared/state-machine.js';
 import {
   selectVictimProfile,
   updateRemoteChecklist,
   updateRemoteStatus,
 } from '../../shared/session.js';
+import {
+  activateNativeControl,
+  beginRemoteMedia,
+  denyNativeControl,
+  endRemoteMedia,
+  grantNativeControl,
+  markRemoteMediaLive,
+  markRemoteAgentHeartbeat,
+  markRemoteAgentOffline,
+  registerRemoteAgent,
+  renewNativeControl,
+  remoteSessionIsActive,
+  requestNativeControl,
+  revokeNativeControl,
+  updateRemoteQuality,
+  updateRemoteAgentCapabilities,
+} from '../../shared/remote-state.js';
 import { examineSignal, openSupportCase, submitDecision } from '../../shared/story.js';
 import { activateQuickClose, pauseTimer, resumeTimer, startTimer } from '../../shared/timer.js';
 import type {
@@ -45,17 +82,33 @@ import type {
 } from '../../shared/types.js';
 import type { AuthContext, SessionStore } from '../sessions/store.js';
 import { SessionStoreError } from '../sessions/store.js';
+import { AgentRegistry } from '../control/agent-registry.js';
+import { ControlLeaseManager } from '../control/lease-manager.js';
 
 interface AuthenticatedSocket extends Socket {
   data: {
     auth: AuthContext;
-    eventTimes: number[];
+    eventTimes: Map<string, number[]>;
+    currentEvent?: string;
   };
 }
 
 type Ack<T = undefined> = (result: SocketAck<T>) => void;
 
-export function registerSocketGateway(io: Server, store: SessionStore) {
+export interface SocketGatewayOptions {
+  agentRegistry?: AgentRegistry;
+  leaseManager?: ControlLeaseManager;
+}
+
+export function registerSocketGateway(
+  io: Server,
+  store: SessionStore,
+  options: SocketGatewayOptions = {},
+) {
+  const agentRegistry =
+    options.agentRegistry ??
+    new AgentRegistry({ allowedDeviceId: '', agentKey: '', heartbeatTimeoutMs: 9_000 });
+  const leaseManager = options.leaseManager ?? new ControlLeaseManager({ ttlMs: 15_000 });
   const clock = setInterval(() => {
     for (const tick of store.tickTimers()) {
       emitRoleState(io, socketEvents.sessionState, tick.session);
@@ -70,6 +123,19 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
       emitRoleState(io, socketEvents.simulationUpdated, tick.session);
       emitRoleState(io, socketEvents.sessionState, tick.session);
     }
+    for (const agent of agentRegistry.expireStale()) {
+      leaseManager.revoke(agent.sessionId);
+      const next = safelyUpdateRemote(store, agent.sessionId, (session) =>
+        markRemoteAgentOffline(session, 'timeout'),
+      );
+      if (next) emitRoleState(io, socketEvents.sessionState, next);
+    }
+    for (const lease of leaseManager.expireStale()) {
+      const next = safelyUpdateRemote(store, lease.sessionId, (session) =>
+        revokeNativeControl(session, 'timeout'),
+      );
+      if (next) emitRoleState(io, socketEvents.sessionState, next);
+    }
   }, 250);
   clock.unref();
 
@@ -79,7 +145,7 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
       const sessionId = String(socket.handshake.auth.sessionId ?? '');
       const token = String(socket.handshake.auth.token ?? '');
       socket.data.auth = store.authenticate(sessionId, token);
-      socket.data.eventTimes = [];
+      socket.data.eventTimes = new Map();
       next();
     } catch (error) {
       next(new Error(publicError(error)));
@@ -89,6 +155,9 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
   io.on('connection', (rawSocket) => {
     const socket = rawSocket as AuthenticatedSocket;
     const auth = socket.data.auth;
+    socket.prependAny((event) => {
+      socket.data.currentEvent = event;
+    });
     const room = roomName(auth.sessionId);
     socket.join(room);
     socket.join(roleRoom(auth.sessionId, auth.role));
@@ -113,18 +182,218 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
       });
     });
 
+    socket.on(socketEvents.sessionStart, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['coordinator']);
+        const input = sessionEventSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        const next = store.updateState(auth, startExperience);
+        emitRoleState(io, socketEvents.phaseChanged, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.sessionEnd, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['coordinator']);
+        const input = sessionEventSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.revoke(auth.sessionId);
+        const next = store.updateState(auth, finishExperience);
+        io.to(roleRoom(auth.sessionId, 'victim')).emit(socketEvents.webrtcStop);
+        io.to(roleRoom(auth.sessionId, 'attacker')).emit(socketEvents.webrtcStop);
+        emitRoleState(io, socketEvents.phaseChanged, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.agentRegister, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim']);
+        const input = agentRegisterSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        if (store.getState(auth).mode !== 'live')
+          throw new Error('native_agent_live_mode_required');
+        const agent = agentRegistry.register(auth.sessionId, auth.participantId, input);
+        const next = store.updateState(auth, (session) => registerRemoteAgent(session, agent));
+        emitRoleState(io, socketEvents.agentStatus, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.agentHeartbeat, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim']);
+        const input = agentHeartbeatSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        const agent = agentRegistry.heartbeat(auth.sessionId, auth.participantId, input.agentId);
+        const next = store.updateState(auth, (session) =>
+          markRemoteAgentHeartbeat(session, agent.lastSeenAt),
+        );
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.agentCapabilities, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim']);
+        const input = agentCapabilitiesUpdateSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        const agent = agentRegistry.updateCapabilities(
+          auth.sessionId,
+          auth.participantId,
+          input.agentId,
+          input.capabilities,
+        );
+        const next = store.updateState(auth, (session) =>
+          updateRemoteAgentCapabilities(session, agent.capabilities, agent.lastSeenAt),
+        );
+        emitRoleState(io, socketEvents.agentStatus, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlRequest, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['attacker']);
+        const input = controlRequestSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        agentRegistry.getOnline(auth.sessionId);
+        const next = store.updateState(auth, (session) =>
+          requestNativeControl(session, auth.participantId),
+        );
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlGrant, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim']);
+        const input = controlGrantSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        const agent = agentRegistry.getOnline(auth.sessionId);
+        if (agent.participantId !== auth.participantId) throw new Error('agent_identity_mismatch');
+        const state = store.getState(auth);
+        const owner = state.remote.input.requestedByParticipantId;
+        if (!owner) throw new Error('control_not_requested');
+        const lease = leaseManager.issue(auth.sessionId, owner, agent.participantId);
+        const next = store.updateState(auth, (session) =>
+          grantNativeControl(session, lease, auth.participantId),
+        );
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlActivate, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['attacker']);
+        const input = controlActivateSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        const lease = leaseManager.validate(auth.sessionId, input.leaseId, auth.participantId);
+        const next = store.updateState(auth, (session) => {
+          const activated = activateNativeControl(session, lease);
+          return activated.phase === 'connecting'
+            ? transitionSession(activated, 'controlled', { outcome: 'compromised' })
+            : activated;
+        });
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlHeartbeat, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['attacker']);
+        const input = controlHeartbeatSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        const lease = leaseManager.renew(auth.sessionId, input.leaseId, auth.participantId);
+        const next = store.updateState(auth, (session) => renewNativeControl(session, lease));
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlRevoke, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim', 'attacker', 'coordinator']);
+        const input = controlRevokeSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        assertStopReasonMatchesRole(auth.role, input.reason);
+        leaseManager.revoke(auth.sessionId);
+        const next = store.updateState(auth, (session) => {
+          const stopped =
+            auth.role === 'victim' && session.remote.input.status === 'requested'
+              ? denyNativeControl(session, Date.now(), auth.participantId)
+              : revokeNativeControl(session, input.reason, Date.now(), auth.participantId);
+          return advanceAfterControlStop(stopped);
+        });
+        if (next.phase === 'reveal') emitRoleState(io, socketEvents.phaseChanged, next);
+        emitRoleState(io, socketEvents.controlStopped, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.controlReveal, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['attacker']);
+        const input = sessionEventSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.revoke(auth.sessionId);
+        const next = store.updateState(auth, (session) => {
+          const stopped = endRemoteMedia(session, 'attacker', Date.now());
+          if (stopped.phase !== 'controlled') throw new Error('reveal_out_of_phase');
+          return transitionSession(stopped, 'reveal');
+        });
+        emitRoleState(io, socketEvents.controlStopped, next);
+        emitRoleState(io, socketEvents.phaseChanged, next);
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.remoteQuality, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['attacker']);
+        const input = remoteQualitySchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        const next = store.updateState(auth, (session) =>
+          updateRemoteQuality(session, {
+            width: input.width,
+            height: input.height,
+            fps: input.fps,
+            bitrateKbps: input.bitrateKbps,
+            packetsLost: input.packetsLost,
+            roundTripMs: input.roundTripMs,
+          }),
+        );
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
     socket.on(socketEvents.phaseRequest, (payload: unknown, ack?: Ack<DemoSession>) => {
       handle(socket, ack, () => {
         store.assertRole(auth, ['coordinator']);
         const input = phaseTransitionRequestSchema.parse(payload);
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
-        const next = store.updateState(auth, (session) =>
-          transitionSession(session, input.target, input),
-        );
-        emitRoleState(io, socketEvents.phaseChanged, next);
-        emitRoleState(io, socketEvents.sessionState, next);
-        return next;
+        throw new Error('manual_phase_control_disabled');
       });
     });
 
@@ -166,7 +435,7 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
         const next = store.updateState(auth, (session) =>
-          selectVictimProfile(session, input.profileId),
+          advanceAfterProfile(selectVictimProfile(session, input.profileId)),
         );
         emitRoleState(io, socketEvents.phaseChanged, next);
         emitRoleState(io, socketEvents.sessionState, next);
@@ -235,7 +504,7 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
         const next = store.updateState(auth, (session) =>
-          executeAttackerAction(session, input.action),
+          advanceAfterSimulatedControl(executeAttackerAction(session, input.action)),
         );
         const latest = next.timeline.at(-1);
         if (latest?.kind === 'permission') {
@@ -282,7 +551,7 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
         const before = store.getState(auth).phase;
         const next = store.updateState(auth, (session) =>
-          answerPermission(session, input.permission, input.status),
+          advanceAfterScreenConsent(answerPermission(session, input.permission, input.status)),
         );
         if (next.phase !== before) emitRoleState(io, socketEvents.phaseChanged, next);
         emitRoleState(io, socketEvents.sessionState, next);
@@ -324,6 +593,7 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         const input = sessionEventSchema.parse(payload);
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.revoke(auth.sessionId);
         const next = store.updateState(auth, requestRemoteStop);
         emitRoleState(io, socketEvents.sessionState, next);
         return next;
@@ -339,6 +609,21 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         const next = store.updateState(auth, (session) =>
           validateRecoveryOrder(session, input.order),
         );
+        emitRoleState(io, socketEvents.sessionState, next);
+        return next;
+      });
+    });
+
+    socket.on(socketEvents.recoveryBegin, (payload: unknown, ack?: Ack<DemoSession>) => {
+      handle(socket, ack, () => {
+        store.assertRole(auth, ['victim']);
+        const input = sessionEventSchema.parse(payload);
+        assertSession(auth, input.sessionId);
+        if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.revoke(auth.sessionId);
+        const next = store.updateState(auth, beginVictimRecovery);
+        io.to(roleRoom(auth.sessionId, 'attacker')).emit(socketEvents.webrtcStop);
+        emitRoleState(io, socketEvents.phaseChanged, next);
         emitRoleState(io, socketEvents.sessionState, next);
         return next;
       });
@@ -373,10 +658,11 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
 
     socket.on(socketEvents.emergencyStop, (payload: unknown, ack?: Ack<DemoSession>) => {
       handle(socket, ack, () => {
-        store.assertRole(auth, ['coordinator']);
+        store.assertRole(auth, ['coordinator', 'attacker']);
         const input = sessionEventSchema.parse(payload);
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.revoke(auth.sessionId);
         const next = store.updateState(auth, emergencyStopSession);
         emitRoleState(io, socketEvents.sessionState, next);
         return next;
@@ -389,6 +675,8 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         const input = sessionEventSchema.parse(payload);
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
+        leaseManager.clearSession(auth.sessionId);
+        agentRegistry.clearSession(auth.sessionId);
         const reset = store.reset(auth);
         emitRoleReset(io, reset.session);
         ack?.({ ok: true, data: reset.credentials });
@@ -402,12 +690,10 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         const input = sessionEventSchema.parse(payload);
         assertSession(auth, input.sessionId);
         if (store.isDuplicate(auth, input.eventId)) return duplicate(ack);
-        const next = store.updateState(auth, (session) => ({
-          ...session,
-          mode: 'simulated',
-          technical: { ...session.technical, fallbackActive: true },
-          revision: session.revision + 1,
-        }));
+        leaseManager.revoke(auth.sessionId);
+        const next = store.updateState(auth, activateFallbackMode);
+        io.to(roleRoom(auth.sessionId, 'victim')).emit(socketEvents.webrtcStop);
+        io.to(roleRoom(auth.sessionId, 'attacker')).emit(socketEvents.webrtcStop);
         emitRoleState(io, socketEvents.sessionState, next);
         return next;
       });
@@ -418,9 +704,16 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         store.assertRole(auth, ['victim']);
         const input = webrtcDescriptionSchema.parse(payload);
         assertSession(auth, input.sessionId);
+        const current = store.getState(auth);
+        if (current.mode === 'live')
+          agentRegistry.assertParticipant(auth.sessionId, auth.participantId);
+        const next = store.updateState(auth, (session) =>
+          advanceAfterCapture(beginRemoteMedia(session)),
+        );
         io.to(roleRoom(auth.sessionId, 'attacker')).emit(socketEvents.webrtcOffer, {
           description: input.description,
         });
+        emitRoleState(io, socketEvents.sessionState, next);
         return { relayed: true };
       });
     });
@@ -430,9 +723,11 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         store.assertRole(auth, ['attacker']);
         const input = webrtcDescriptionSchema.parse(payload);
         assertSession(auth, input.sessionId);
+        const next = store.updateState(auth, (session) => markRemoteMediaLive(session));
         io.to(roleRoom(auth.sessionId, 'victim')).emit(socketEvents.webrtcAnswer, {
           description: input.description,
         });
+        emitRoleState(io, socketEvents.sessionState, next);
         return { relayed: true };
       });
     });
@@ -455,15 +750,37 @@ export function registerSocketGateway(io: Server, store: SessionStore) {
         store.assertRole(auth, ['victim', 'attacker']);
         const input = sessionEventSchema.parse(payload);
         assertSession(auth, input.sessionId);
+        leaseManager.revoke(auth.sessionId);
+        const reason = auth.role === 'victim' ? 'victim' : 'attacker';
+        const next = store.updateState(auth, (session) => endRemoteMedia(session, reason));
         const target = auth.role === 'victim' ? 'attacker' : 'victim';
         io.to(roleRoom(auth.sessionId, target)).emit(socketEvents.webrtcStop);
+        emitRoleState(io, socketEvents.sessionState, next);
         return { relayed: true };
       });
     });
 
     socket.on('disconnect', () => {
       try {
-        const next = disconnectParticipant(store, auth);
+        let next = disconnectParticipant(store, auth);
+        if (auth.role === 'victim') {
+          const agentDisconnected = agentRegistry.disconnect(auth.sessionId, auth.participantId);
+          const current = store.getState(auth);
+          leaseManager.revoke(auth.sessionId);
+          if (agentDisconnected) {
+            next = store.updateState(auth, (session) => markRemoteAgentOffline(session, 'network'));
+          } else if (remoteSessionIsActive(current)) {
+            next = store.updateState(auth, (session) => endRemoteMedia(session, 'network'));
+          }
+          io.to(roleRoom(auth.sessionId, 'attacker')).emit(socketEvents.webrtcStop);
+        } else if (auth.role === 'attacker') {
+          leaseManager.revokeOwnedBy(auth.sessionId, auth.participantId);
+          const current = store.getState(auth);
+          if (remoteSessionIsActive(current)) {
+            next = store.updateState(auth, (session) => endRemoteMedia(session, 'network'));
+            io.to(roleRoom(auth.sessionId, 'victim')).emit(socketEvents.webrtcStop);
+          }
+        }
         io.to(roleRoom(auth.sessionId, 'coordinator')).emit(
           socketEvents.presence,
           next.participants,
@@ -511,12 +828,36 @@ function assertSession(auth: AuthContext, sessionId: string) {
     throw new SessionStoreError(403, 'session_mismatch', 'Evento para otra sesión.');
 }
 
+function assertStopReasonMatchesRole(role: ExperienceRole, reason: string) {
+  const allowed: Partial<Record<ExperienceRole, string[]>> = {
+    victim: ['victim'],
+    attacker: ['attacker'],
+    coordinator: ['coordinator', 'emergency'],
+  };
+  if (!allowed[role]?.includes(reason)) throw new Error('stop_reason_forbidden');
+}
+
+function safelyUpdateRemote(
+  store: SessionStore,
+  sessionId: string,
+  updater: (session: DemoSession) => DemoSession,
+): DemoSession | undefined {
+  try {
+    return store.updateSystemState(sessionId, updater);
+  } catch {
+    return undefined;
+  }
+}
+
 function assertRate(socket: AuthenticatedSocket) {
   const now = Date.now();
-  socket.data.eventTimes = socket.data.eventTimes.filter((at) => at > now - 10_000);
-  if (socket.data.eventTimes.length >= 30)
-    throw new SessionStoreError(429, 'event_rate', 'Demasiados eventos.');
-  socket.data.eventTimes.push(now);
+  const event = socket.data.currentEvent ?? 'unknown';
+  const recent = (socket.data.eventTimes.get(event) ?? []).filter((at) => at > now - 10_000);
+  const limit =
+    event === socketEvents.heartbeat ? 40 : event === socketEvents.remoteQuality ? 20 : 15;
+  if (recent.length >= limit) throw new SessionStoreError(429, 'event_rate', 'Demasiados eventos.');
+  recent.push(now);
+  socket.data.eventTimes.set(event, recent);
 }
 
 function roomName(sessionId: string) {

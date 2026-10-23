@@ -48,6 +48,38 @@ export type TimerStatus = 'idle' | 'running' | 'paused' | 'finished';
 export type RemoteControlStatus = 'idle' | 'ready' | 'screen' | 'control' | 'ending' | 'ended';
 export type TimelineActor = ExperienceRole | 'system';
 
+export const remoteAgentStatuses = ['offline', 'online', 'fault'] as const;
+export type RemoteAgentStatus = (typeof remoteAgentStatuses)[number];
+
+export const remoteMediaStatuses = [
+  'idle',
+  'requesting',
+  'negotiating',
+  'live',
+  'degraded',
+  'ended',
+] as const;
+export type RemoteMediaStatus = (typeof remoteMediaStatuses)[number];
+
+export const remoteInputStatuses = [
+  'disabled',
+  'requested',
+  'granted',
+  'active',
+  'revoked',
+] as const;
+export type RemoteInputStatus = (typeof remoteInputStatuses)[number];
+
+export const remoteStopReasons = [
+  'victim',
+  'attacker',
+  'coordinator',
+  'timeout',
+  'network',
+  'emergency',
+] as const;
+export type RemoteStopReason = (typeof remoteStopReasons)[number];
+
 export const decisionChoices = ['solve', 'postpone', 'verify'] as const;
 export type DecisionChoice = (typeof decisionChoices)[number];
 export type NarrativeRoute = 'continue' | 'safe';
@@ -190,8 +222,66 @@ export interface RiskState {
   recoverability: number;
 }
 
+export interface AgentCapabilities {
+  nativeBridge: boolean;
+  desktopCapture: boolean;
+  pointer: boolean;
+  keyboard: boolean;
+  wheel: boolean;
+  emergencyHotkey: boolean;
+  displayCount: number;
+  screenWidth: number;
+  screenHeight: number;
+  dpiScale: number;
+}
+
+export interface RemoteAgentState {
+  status: RemoteAgentStatus;
+  deviceId?: string;
+  agentId?: string;
+  version?: string;
+  lastSeenAt?: number;
+  capabilities: AgentCapabilities;
+}
+
+export interface RemoteMediaState {
+  status: RemoteMediaStatus;
+  startedAt?: number;
+  endedAt?: number;
+}
+
+export interface RemoteInputState {
+  status: RemoteInputStatus;
+  requestedByParticipantId?: string;
+  ownerParticipantId?: string;
+  leaseId?: string;
+  requestedAt?: number;
+  consentedAt?: number;
+  consentedByParticipantId?: string;
+  revokedAt?: number;
+  revokedByParticipantId?: string;
+  grantedAt?: number;
+  activationAvailableAt?: number;
+  expiresAt?: number;
+}
+
+export interface RemoteQualityState {
+  width: number;
+  height: number;
+  fps: number;
+  bitrateKbps: number;
+  packetsLost: number;
+  roundTripMs: number;
+}
+
 export interface RemoteControlState {
+  /** Compatibility projection for the current UI. Remove after Sprint 10 migration. */
   status: RemoteControlStatus;
+  agent: RemoteAgentState;
+  media: RemoteMediaState;
+  input: RemoteInputState;
+  quality: RemoteQualityState;
+  stopReason?: RemoteStopReason;
   screenConfirmedAt?: number;
   controlConfirmedAt?: number;
   endedAt?: number;
@@ -329,6 +419,8 @@ export interface DemoSession {
 export interface HealthResponse {
   status: 'ok';
   service: 'hackeado-server';
+  version: string;
+  release: string;
   timestamp: string;
 }
 

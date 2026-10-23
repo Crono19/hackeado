@@ -76,11 +76,18 @@ function JoinLobby({ role, credentials, onCredentials }: SessionLobbyProps) {
   if (credentials) return null;
 
   return (
-    <Panel className="join-console" label="PAIR://REQUEST">
+    <Panel className={`join-console join-console--${role}`} label="PAIR://REQUEST">
       <div className="join-console__heading">
         <div>
-          <p className="eyebrow">ENLACE TEMPORAL</p>
-          <h2>Entrar a sesión</h2>
+          <p className="eyebrow">
+            {role === 'victim' ? 'WINDOWS // ENTRADA CONTROLADA' : 'ENLACE TEMPORAL'}
+          </p>
+          <h2>{role === 'victim' ? 'Conecta al incidente.' : 'Entrar a sesión'}</h2>
+          {role === 'victim' && (
+            <p className="join-console__promise">
+              Usarás identidad ficticia. Cada permiso pedirá tu decisión. Siempre podrás detener.
+            </p>
+          )}
         </div>
         <StatusBadge
           tone={
@@ -111,6 +118,19 @@ function JoinLobby({ role, credentials, onCredentials }: SessionLobbyProps) {
           Solicitar acceso <span>↗</span>
         </Button>
       </form>
+      {role === 'victim' && (
+        <div className="victim-entry-assurances" aria-label="Protecciones de sesión">
+          <span>
+            <b>01</b> Datos ficticios
+          </span>
+          <span>
+            <b>02</b> Permisos visibles
+          </span>
+          <span>
+            <b>03</b> Parada local
+          </span>
+        </div>
+      )}
       {ticket && (
         <p className="join-console__signal" role="status">
           <i aria-hidden="true" />
@@ -187,7 +207,7 @@ function CoordinatorLobby({ credentials, onCredentials }: Omit<SessionLobbyProps
               [
                 'live',
                 'REMOTO REAL',
-                'Herramienta externa, consentimiento y checklist obligatorio.',
+                'Agente Windows visible, consentimiento doble y parada local.',
               ],
             ] as const
           ).map(([value, label, detail]) => (

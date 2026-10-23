@@ -35,6 +35,6 @@ export const roleRoutes: RoleRoute[] = [
     role: 'coordinator',
     label: 'Coordinación',
     eyebrow: 'Control · estación',
-    description: 'Sesión, tiempo, fases y parada de emergencia.',
+    description: 'Sesión, tiempo, presencia y parada de emergencia.',
   },
 ];

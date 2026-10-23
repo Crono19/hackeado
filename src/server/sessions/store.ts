@@ -10,6 +10,7 @@ import type {
 import { createInitialSession } from '../../shared/session.js';
 import { tickTimer } from '../../shared/timer.js';
 import { tickSimulation } from '../../shared/simulation.js';
+import { remoteSessionIsActive } from '../../shared/remote-state.js';
 
 const JOIN_TTL_MS = 5 * 60 * 1000;
 const ATTEMPT_WINDOW_MS = 60 * 1000;
@@ -200,6 +201,16 @@ export class SessionStore {
     return structuredClone(managed.state);
   }
 
+  updateSystemState(
+    sessionId: string,
+    updater: (session: DemoSession) => DemoSession,
+  ): DemoSession {
+    const managed = this.getManaged(sessionId);
+    managed.state = updater(structuredClone(managed.state));
+    this.touch(managed);
+    return structuredClone(managed.state);
+  }
+
   setParticipantStatus(auth: AuthContext, status: Participant['status']): DemoSession {
     return this.updateState(auth, (state) => ({
       ...state,
@@ -256,7 +267,7 @@ export class SessionStore {
   reset(auth: AuthContext): CreatedSession {
     this.assertRole(auth, ['coordinator']);
     const managed = this.getManaged(auth.sessionId);
-    if (!['idle', 'ended'].includes(managed.state.remote.status)) {
+    if (remoteSessionIsActive(managed.state)) {
       throw new SessionStoreError(
         409,
         'remote_session_active',

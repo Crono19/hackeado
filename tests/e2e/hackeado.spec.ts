@@ -87,10 +87,9 @@ async function rolePage(context: BrowserContext, credentials: Credentials, path:
 }
 
 async function enterStory(page: Page, coordinator: Socket, credentials: Credentials) {
-  await command(coordinator, credentials, 'phase:request', { target: 'waiting' });
+  await command(coordinator, credentials, 'session:start');
   await page.getByRole('radio').first().click();
   await page.getByRole('button', { name: /Entrar al escritorio/ }).click();
-  await command(coordinator, credentials, 'phase:request', { target: 'bait' });
   await page.getByRole('button', { name: /Revisar mensaje/ }).click();
 }
 
@@ -141,14 +140,11 @@ test('flujo comprometido recupera control completo', async ({ browser, request, 
   await victim.getByRole('button', { name: /Permitir una vez/ }).click();
   await command(attacker, team.attacker, 'attacker:action', { action: 'request_keyboard' });
   await victim.getByRole('button', { name: /Permitir una vez/ }).click();
-  await command(coordinator, team.coordinator, 'phase:request', { target: 'connecting' });
-  for (const status of ['ready', 'screen', 'control']) {
-    await command(coordinator, team.coordinator, 'remote:status', { status });
+  for (const action of ['mark_remote_ready', 'confirm_screen', 'confirm_control']) {
+    await command(attacker, team.attacker, 'attacker:action', { action });
   }
-  await command(coordinator, team.coordinator, 'phase:request', { target: 'controlled' });
-  for (const target of ['reveal', 'containment', 'recovery']) {
-    await command(coordinator, team.coordinator, 'phase:request', { target });
-  }
+  await command(attacker, team.attacker, 'control:reveal');
+  await command(victimSocket, team.victim, 'recovery:begin');
   const order = [
     'disconnect_remote',
     'revoke_permissions',
@@ -158,7 +154,6 @@ test('flujo comprometido recupera control completo', async ({ browser, request, 
     'review_report',
   ];
   await command(victimSocket, team.victim, 'recovery:order', { order });
-  await command(victimSocket, team.victim, 'remote:stop-requested');
   for (const step of order) await command(victimSocket, team.victim, 'recovery:step', { step });
   await command(victimSocket, team.victim, 'recovery:complete');
   await expect(
@@ -179,7 +174,7 @@ test('parada de emergencia domina cualquier escena activa', async ({
   const coordinator = await connect(baseURL!, team.coordinator);
   const context = await browser.newContext();
   const victim = await rolePage(context, team.victim, '/victima');
-  await command(coordinator, team.coordinator, 'phase:request', { target: 'waiting' });
+  await command(coordinator, team.coordinator, 'session:start');
   await command(coordinator, team.coordinator, 'experience:emergency-stop');
   await expect(victim.getByText('ACCESO FINALIZADO')).toBeVisible();
   await expect(victim.getByText('La demostración está en estado seguro.')).toBeVisible();
@@ -204,7 +199,7 @@ test('señalización WebRTC viaja solo entre víctima y atacante autorizados', a
   attacker.disconnect();
 });
 
-test('coordinación bloquea Bajo control incompleto y permite Revelación moderada', async ({
+test('coordinación ya no dirige escenas y el relato avanza por acciones reales', async ({
   browser,
   request,
   baseURL,
@@ -216,9 +211,8 @@ test('coordinación bloquea Bajo control incompleto y permite Revelación modera
   const context = await browser.newContext();
   const coordinator = await rolePage(context, team.coordinator, '/coordinacion');
 
-  await command(coordinatorSocket, team.coordinator, 'phase:request', { target: 'waiting' });
+  await command(coordinatorSocket, team.coordinator, 'session:start');
   await command(victimSocket, team.victim, 'profile:selected', { profileId: 'alex' });
-  await command(coordinatorSocket, team.coordinator, 'phase:request', { target: 'bait' });
   await command(victimSocket, team.victim, 'support:open');
   await command(victimSocket, team.victim, 'decision:submitted', { choice: 'solve' });
   await command(attackerSocket, team.attacker, 'attacker:action', { action: 'request_screen' });
@@ -231,12 +225,12 @@ test('coordinación bloquea Bajo control incompleto y permite Revelación modera
     permission: 'keyboard',
     status: 'granted',
   });
-  await command(coordinatorSocket, team.coordinator, 'phase:request', { target: 'connecting' });
-
-  await expect(coordinator.getByRole('button', { name: /Bajo control/ })).toBeDisabled();
-  await expect(coordinator.getByText(/Completa: Armar WebRTC/)).toBeVisible();
-  await coordinator.getByRole('button', { name: /Revelación/ }).click();
-  await expect(coordinator.locator('.scene-director h2')).toHaveText('Revelación');
+  await expect(coordinator.getByText('Conexión')).toBeVisible();
+  await expect(coordinator.getByText(/Sin botones de escena/)).toBeVisible();
+  await expect(coordinator.getByRole('button', { name: /Bajo control|Revelación/ })).toHaveCount(0);
+  await expect(
+    command(coordinatorSocket, team.coordinator, 'phase:request', { target: 'controlled' }),
+  ).rejects.toThrow('manual_phase_control_disabled');
 
   coordinatorSocket.disconnect();
   victimSocket.disconnect();
@@ -272,6 +266,9 @@ test('frontera HTTP rechaza origen y JSON malformado sin filtrar detalles', asyn
 test('responsive y accessibility conservan navegación visible', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.getByText('1.0.0-rc.1')).toBeVisible();
+  await expect(page.getByText('LEASE LOCKED')).toBeVisible();
+  await expect(page.getByRole('link', { name: /consola de dominio/i })).toHaveCount(0);
   await expect(page.getByRole('link', { name: /Víctima/ })).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAttribute('href', '#main-content');

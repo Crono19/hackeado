@@ -7,11 +7,22 @@ coverage/
 playwright-report/
 test-results/
 release/*.tar.gz
+release/*.sha256
+release/windows-agent/
+release/evidence/
+apps/windows-agent/**/bin/
+apps/windows-agent/**/obj/
+apps/windows-agent/**/publish/
+apps/windows-agent/**/agent-config.json
 
 # Environment files
 .env
 .env.local
 .env.*.local
+config/windows-agent.local.json
+certs/*.key
+certs/*.pfx
+certs/*.pem
 
 # Logs
 *.log

@@ -133,6 +133,14 @@ export function emergencyStopSession(session: DemoSession, now = Date.now()): De
     remote: {
       ...session.remote,
       status: 'ended',
+      input: {
+        ...session.remote.input,
+        status: 'revoked',
+        leaseId: undefined,
+        expiresAt: undefined,
+      },
+      media: { ...session.remote.media, status: 'ended', endedAt: now },
+      stopReason: 'emergency',
       endedAt: now,
     },
     permissions: cancelled.permissions.map((permission) => ({
