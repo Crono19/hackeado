@@ -14,7 +14,7 @@ import type {
 import { getScenario } from '../../api/sessions';
 import { SimulatedDesktop } from '../../components/SimulatedDesktop';
 import { RecoveryChallenge } from '../../components/RecoveryChallenge';
-import { ScoreSummary } from '../../components/ScoreSummary';
+import { AwarenessFinale } from '../../components/AwarenessFinale';
 import { Button, Panel, StatusBadge } from '../../components/ui';
 import { VictimWebRtcBroadcast } from '../../components/WebRtcSession';
 import { FallbackPlayback } from '../../components/FallbackPlayback';
@@ -282,25 +282,21 @@ export function VictimExperience({
           <PermissionStage session={session} onAnswer={answerPermission} />
         )}
 
-        {session.phase === 'recovery' && (
+        {session.phase === 'recovery' && session.recovery.status !== 'complete' && (
           <div className="victim-recovery-overlay">
             <RecoveryChallenge session={session} command={command} />
           </div>
         )}
 
-        {session.phase === 'result' &&
-          (session.outcome === 'safe' ? (
-            <SafeOutcome session={session} />
-          ) : (
-            session.summary && (
-              <div className="victim-result-overlay">
-                <ScoreSummary summary={session.summary} />
-                <div className="final-protection-strip">
-                  VERIFICA IDENTIDAD · LIMITA PERMISOS · DETÉN · PROTEGE · REPORTA
-                </div>
-              </div>
-            )
-          ))}
+        {session.phase === 'recovery' && session.recovery.status === 'complete' && (
+          <RecoveryRestored />
+        )}
+
+        {session.phase === 'result' && (
+          <div className="victim-result-overlay">
+            <AwarenessFinale />
+          </div>
+        )}
 
         {error && (
           <div className="victim-inline-error" role="alert">
@@ -687,21 +683,16 @@ function RevealStage({ session, onRecover }: { session: DemoSession; onRecover: 
   );
 }
 
-function SafeOutcome({ session }: { session: DemoSession }) {
-  const verified = session.story.decision?.choice === 'verify';
+function RecoveryRestored() {
   return (
-    <section className="safe-outcome" role="status">
-      <span className="safe-outcome__mark">✓</span>
-      <small>RUTA SEGURA · PUNTUACIÓN {session.score}</small>
-      <h3>{verified ? 'Verificaste antes de confiar.' : 'No concediste acceso.'}</h3>
-      <p>
-        El supuesto soporte quedó fuera. Ningún permiso fue concedido y el escritorio conserva
-        control.
-      </p>
+    <section className="recovery-restored" role="status" aria-live="polite">
+      <span className="recovery-restored__mark">✓</span>
       <div>
-        <strong>La señal clave</strong>
-        <span>Urgencia no reemplaza verificación por canal oficial.</span>
+        <small>SYSTEM://RESTORED</small>
+        <strong>La víctima recuperó el control.</strong>
+        <p>Acceso cerrado, permisos revocados y protocolo completado.</p>
       </div>
+      <span>Esperando cierre de Coordinación</span>
     </section>
   );
 }

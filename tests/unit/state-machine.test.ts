@@ -68,6 +68,13 @@ describe('phase transition graph', () => {
     expect(controlled.phase).toBe('controlled');
     expect(controlled.outcome).toBe('compromised');
   });
+
+  it('enters recovery with the educational protocol already ordered', () => {
+    const recovery = transitionSession(atPhase('containment'), 'recovery');
+
+    expect(recovery.recovery.status).toBe('active');
+    expect(recovery.recovery.orderValidated).toBe(true);
+  });
 });
 
 describe('three experience endings', () => {

@@ -18,6 +18,7 @@ import { Timeline } from '../../components/Timeline';
 import { Button, Modal, Panel, StatusBadge } from '../../components/ui';
 import { AttackerWebRtcMonitor } from '../../components/WebRtcSession';
 import { FallbackPlayback } from '../../components/FallbackPlayback';
+import { AwarenessFinale } from '../../components/AwarenessFinale';
 
 type Command = <T>(event: string, payload?: Record<string, unknown>) => Promise<SocketAck<T>>;
 
@@ -40,6 +41,8 @@ export function AttackerPanel({
   const pendingSimulations = session.simulation.queue.filter((item) =>
     ['queued', 'running'].includes(item.status),
   );
+
+  if (session.phase === 'result') return <AwarenessFinale />;
 
   async function execute(action: AttackerActionDefinition) {
     const result = await command<DemoSession>(socketEvents.attackerAction, { action: action.id });

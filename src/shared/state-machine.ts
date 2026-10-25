@@ -107,7 +107,7 @@ export function transitionSession(
         : session.story,
     recovery:
       target === 'recovery'
-        ? { ...session.recovery, status: 'ordering', orderValidated: false }
+        ? { ...session.recovery, status: 'active', orderValidated: true }
         : session.recovery,
     timeline: [...session.timeline, createTimelineEvent(session, target, now, options.reason)],
     revision: session.revision + 1,

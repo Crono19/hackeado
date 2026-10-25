@@ -50,6 +50,8 @@ describe('six-step recovery protocol', () => {
     let session = validateRecoveryOrder(requestRemoteStop(recoverySession()), recoveryOrder);
     expect(() => completeRecoveryStep(session, 'enable_mfa')).toThrow('recovery_step_out_of_order');
     for (const step of recoveryOrder) session = completeRecoveryStep(session, step);
+    expect(session.recovery.status).toBe('complete');
+    expect(session.recovery.completedAt).toBeDefined();
     const result = completeRecovery(session);
     expect(result.phase).toBe('result');
     expect(result.recovery.status).toBe('complete');

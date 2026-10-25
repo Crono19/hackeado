@@ -128,11 +128,15 @@ export function completeRecoveryStep(
   if (step === 'disconnect_remote' && session.remote.status !== 'ended') {
     throw new Error('remote_must_be_ended');
   }
+  const completedSteps = [...session.recovery.completedSteps, step];
+  const finished = completedSteps.length === recoveryOrder.length;
   let next: DemoSession = {
     ...session,
     recovery: {
       ...session.recovery,
-      completedSteps: [...session.recovery.completedSteps, step],
+      status: finished ? 'complete' : 'active',
+      completedSteps,
+      completedAt: finished ? now : session.recovery.completedAt,
     },
     timeline: [
       ...session.timeline,

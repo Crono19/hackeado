@@ -46,6 +46,7 @@ export function CoordinatorLite({
 
   const activePhase = !['preparation', 'result', 'emergency', 'reset'].includes(session.phase);
   const remoteActive = !['idle', 'ended'].includes(session.remote.status);
+  const recoveryComplete = session.phase === 'recovery' && session.recovery.status === 'complete';
 
   return (
     <section className="coordinator-lite" aria-label="Coordinación mínima de sesión">
@@ -163,8 +164,12 @@ export function CoordinatorLite({
             >
               ◫ Activar respaldo
             </Button>
-            <Button variant="ghost" disabled={!activePhase} onClick={() => setConfirm('finish')}>
-              ■ Finalizar ronda
+            <Button
+              variant="ghost"
+              disabled={!recoveryComplete}
+              onClick={() => setConfirm('finish')}
+            >
+              ■ Terminar simulación
             </Button>
             <Button variant="ghost" disabled={remoteActive} onClick={() => setConfirm('reset')}>
               ↺ Reiniciar
@@ -211,10 +216,13 @@ export function CoordinatorLite({
       </Modal>
       <Modal
         open={confirm === 'finish'}
-        title="¿Finalizar esta ronda?"
+        title="¿Terminar la simulación?"
         onClose={() => setConfirm(null)}
       >
-        <p>Cierra canales, revoca permisos activos y genera resultado con estado actual.</p>
+        <p>
+          El protocolo terminó. Cierra la experiencia y muestra el mismo mensaje de concientización
+          a Víctima y Atacante.
+        </p>
         <Button
           variant="danger"
           onClick={async () => {
@@ -222,7 +230,7 @@ export function CoordinatorLite({
             setConfirm(null);
           }}
         >
-          Finalizar de forma segura
+          Terminar simulación
         </Button>
       </Modal>
       <Modal
