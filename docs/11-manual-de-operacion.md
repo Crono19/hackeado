@@ -25,7 +25,12 @@ npm run start:expo
 HACKEADO_URL=https://IP-DEL-MAC:3000 npm run verify:live-network
 ```
 
-8. En Windows, ejecutar `verify-demo-vm.ps1`.
+8. En Windows, ejecutar desde `C:\HACKEADO-SOURCE\hackeado`:
+
+   ```powershell
+   .\scripts\windows\verify-demo-vm.ps1
+   ```
+
 9. Abrir manualmente `HACKEADO.VictimHost.exe`.
 10. Abrir en Mac `/coordinacion`, `/atacante` y `/publico`.
 
@@ -81,13 +86,15 @@ Después de cualquier parada, reconectar vídeo no reactiva entrada. Se requiere
 
 ## Comandos
 
+Los comandos de Windows se ejecutan desde `C:\HACKEADO-SOURCE\hackeado`; los comandos `npm` se ejecutan desde la raíz del repositorio en la Mac.
+
 | Comando                                     | Uso                                          |
 | ------------------------------------------- | -------------------------------------------- |
 | `npm run start:expo`                        | Arranque estricto HTTPS + agente obligatorio |
 | `npm run verify:release`                    | Suite, build, diez rondas, E2E y activos     |
 | `npm run verify:live-network`               | Valida HTTPS, WSS y latencia en LAN final    |
 | `npm run package:offline`                   | Paquete Mac con dependencias de producción   |
-| `./scripts/windows/package-victim-host.ps1` | Prueba, publica y empaqueta agente Windows   |
+| `.\scripts\windows\package-victim-host.ps1` | Prueba, publica y empaqueta agente Windows   |
 | `npm run record:backup`                     | Regenera vídeo local                         |
 
 ## Cierre diario

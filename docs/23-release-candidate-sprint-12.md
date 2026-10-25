@@ -11,7 +11,7 @@ No se declara terminado un requisito físico sin evidencia firmada.
 | Artefacto            | Generación                                                 | Contenido                                                           |
 | -------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
 | Mac offline          | `npm run package:offline`                                  | servidor compilado, cliente, dependencias, docs, scripts y respaldo |
-| Windows agent        | `./scripts/windows/package-victim-host.ps1`                | aplicación self-contained, configuración ejemplo, manual y SHA-256  |
+| Windows agent        | `.\scripts\windows\package-victim-host.ps1`                | aplicación self-contained, configuración ejemplo, manual y SHA-256  |
 | Evidencia automática | `npm run verify:release`                                   | calidad, diez rondas automáticas, E2E y auditoría de activos        |
 | Evidencia LAN        | `HACKEADO_URL=https://IP:3000 npm run verify:live-network` | HTTPS, WSS y latencia de ACK                                        |
 
@@ -41,8 +41,9 @@ shasum -a 256 release/HACKEADO-offline-1.0.0-rc.1-macos.tar.gz
 ### Windows
 
 ```powershell
-./scripts/windows/package-victim-host.ps1
-Get-FileHash release/windows-agent/HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip -Algorithm SHA256
+cd C:\HACKEADO-SOURCE\hackeado
+.\scripts\windows\package-victim-host.ps1
+Get-FileHash .\release\windows-agent\HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip -Algorithm SHA256
 ```
 
 Copiar `agent-config.example.json` como `agent-config.json` al lado del ejecutable y completar localmente. Nunca introducir secreto en ZIP.

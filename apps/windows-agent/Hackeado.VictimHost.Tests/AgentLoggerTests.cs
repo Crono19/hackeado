@@ -1,3 +1,4 @@
+using System.IO;
 using Hackeado.VictimHost.Telemetry;
 
 namespace Hackeado.VictimHost.Tests;

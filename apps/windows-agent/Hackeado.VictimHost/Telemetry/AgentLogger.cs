@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace Hackeado.VictimHost.Telemetry;
 
 public sealed class AgentLogger

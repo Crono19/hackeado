@@ -25,7 +25,8 @@ npm run test:remote-desktop
 ## Validación automatizada en Windows
 
 ```powershell
-./scripts/windows/build-victim-host.ps1
+cd C:\HACKEADO-SOURCE\hackeado
+.\scripts\windows\build-victim-host.ps1
 ```
 
 El script exige usuario no administrador, restaura dependencias, ejecuta pruebas C# y publica build `win-x64` dependiente de .NET 8.

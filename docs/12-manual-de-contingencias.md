@@ -34,7 +34,13 @@ Fallo técnico nunca amplía permisos. Primero revocar entrada. Después recuper
 1. Confirmar `remote: ended` e `input: revoked`.
 2. Cerrar Victim Host.
 3. Restaurar snapshot si hubo cambios inesperados.
-4. Ejecutar `verify-demo-vm.ps1`.
+4. Ejecutar desde la raíz real del clon:
+
+   ```powershell
+   cd C:\HACKEADO-SOURCE\hackeado
+   .\scripts\windows\verify-demo-vm.ps1
+   ```
+
 5. Comprobar HTTPS/WSS con `verify:live-network`.
 6. Crear sesión nueva.
 7. Repetir consentimiento desde cero.

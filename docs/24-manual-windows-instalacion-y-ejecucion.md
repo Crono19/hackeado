@@ -257,10 +257,17 @@ En la cuenta `VictimaDemo`:
 
 ## Paso 11. Copiar la fuente
 
-Necesitas el repositorio completo porque los scripts de Windows compilan el agente. Cópialo desde la Mac a:
+Necesitas el repositorio completo porque los scripts de Windows compilan el agente. En este manual `C:\HACKEADO-SOURCE` es la carpeta contenedora y el clon conserva el nombre `hackeado`, por lo que la raíz real del repositorio es:
 
 ```text
-C:\HACKEADO-SOURCE
+C:\HACKEADO-SOURCE\hackeado
+```
+
+Si todavía no lo has clonado, abre PowerShell dentro de `C:\HACKEADO-SOURCE` y utiliza la URL real de tu repositorio:
+
+```powershell
+cd C:\HACKEADO-SOURCE
+git clone URL-DE-TU-REPOSITORIO hackeado
 ```
 
 Métodos aceptables:
@@ -273,9 +280,9 @@ Métodos aceptables:
 La copia debe contener al menos:
 
 ```text
-C:\HACKEADO-SOURCE\apps\windows-agent
-C:\HACKEADO-SOURCE\config
-C:\HACKEADO-SOURCE\scripts\windows
+C:\HACKEADO-SOURCE\hackeado\apps\windows-agent
+C:\HACKEADO-SOURCE\hackeado\config
+C:\HACKEADO-SOURCE\hackeado\scripts\windows
 ```
 
 No copies desde la Mac:
@@ -298,7 +305,7 @@ Después de copiar localmente el proyecto, desactiva en el hipervisor:
 Abre PowerShell normal como `VictimaDemo`:
 
 ```powershell
-cd C:\HACKEADO-SOURCE
+cd C:\HACKEADO-SOURCE\hackeado
 Test-Path .\apps\windows-agent\Hackeado.VictimHost.sln
 Test-Path .\scripts\windows\build-victim-host.ps1
 Test-Path .\config\windows-agent.example.json
@@ -437,7 +444,7 @@ La primera compilación necesita Internet para descargar paquetes NuGet, incluye
 No uses **Ejecutar como administrador**.
 
 ```powershell
-cd C:\HACKEADO-SOURCE
+cd C:\HACKEADO-SOURCE\hackeado
 Set-ExecutionPolicy -Scope Process Bypass
 dotnet --version
 ```
@@ -466,7 +473,7 @@ Este script:
 La salida principal será:
 
 ```text
-C:\HACKEADO-SOURCE\apps\windows-agent\Hackeado.VictimHost\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish
+C:\HACKEADO-SOURCE\hackeado\apps\windows-agent\Hackeado.VictimHost\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish
 ```
 
 Comprueba el ejecutable:
@@ -486,8 +493,8 @@ Debe devolver `True`.
 Se generarán:
 
 ```text
-C:\HACKEADO-SOURCE\release\windows-agent\HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip
-C:\HACKEADO-SOURCE\release\windows-agent\HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip.sha256
+C:\HACKEADO-SOURCE\hackeado\release\windows-agent\HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip
+C:\HACKEADO-SOURCE\hackeado\release\windows-agent\HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip.sha256
 ```
 
 Verifica el hash:

@@ -27,6 +27,7 @@ El repositorio no puede demostrar por sí solo el estado de una VM externa. Por 
 Dentro de la VM, abrir PowerShell y ejecutar primero auditoría sin cambios:
 
 ```powershell
+cd C:\HACKEADO-SOURCE\hackeado
 Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\windows\prepare-demo-vm.ps1
 ```
@@ -68,10 +69,10 @@ Validar:
 
 ## Configuración local
 
-Copiar `config/windows-agent.example.json` a:
+Desde la raíz `C:\HACKEADO-SOURCE\hackeado`, copiar `config/windows-agent.example.json` a:
 
 ```text
-config/windows-agent.local.json
+C:\HACKEADO-SOURCE\hackeado\config\windows-agent.local.json
 ```
 
 Cambiar:

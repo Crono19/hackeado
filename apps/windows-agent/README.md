@@ -52,13 +52,14 @@ El certificado configurado en Mac debe ser confiable dentro de Windows. Para exp
 Desde PowerShell, en raíz del repositorio:
 
 ```powershell
-./scripts/windows/build-victim-host.ps1
+cd C:\HACKEADO-SOURCE\hackeado
+.\scripts\windows\build-victim-host.ps1
 ```
 
 Salida:
 
 ```text
-apps/windows-agent/Hackeado.VictimHost/bin/Release/net8.0-windows10.0.19041.0/win-x64/publish/
+C:\HACKEADO-SOURCE\hackeado\apps\windows-agent\Hackeado.VictimHost\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish\
 ```
 
 Manifiesto usa `asInvoker`: no solicita administrador. No crea servicio, tarea programada ni inicio automático.
@@ -66,7 +67,8 @@ Manifiesto usa `asInvoker`: no solicita administrador. No crea servicio, tarea p
 ## Empaquetar RC
 
 ```powershell
-./scripts/windows/package-victim-host.ps1
+cd C:\HACKEADO-SOURCE\hackeado
+.\scripts\windows\package-victim-host.ps1
 ```
 
 Genera `release/windows-agent/HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip` y su SHA-256. No incluye `agent-config.json`, secretos ni certificados.
@@ -74,7 +76,8 @@ Genera `release/windows-agent/HACKEADO-VictimHost-1.0.0-rc.1-win-x64.zip` y su S
 ## Pruebas Windows
 
 ```powershell
-dotnet test apps/windows-agent/Hackeado.VictimHost.sln -c Release
+cd C:\HACKEADO-SOURCE\hackeado
+dotnet test .\apps\windows-agent\Hackeado.VictimHost.sln -c Release
 ```
 
 Pruebas cubren configuración, origen, coordenadas con DPI 100/125/150%, lease/secuencia,

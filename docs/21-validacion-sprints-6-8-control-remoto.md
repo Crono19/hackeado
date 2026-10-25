@@ -26,8 +26,9 @@ npm run build
 En Windows 11 con .NET 8:
 
 ```powershell
-dotnet test apps/windows-agent/Hackeado.VictimHost.sln -c Release
-./scripts/windows/build-victim-host.ps1
+cd C:\HACKEADO-SOURCE\hackeado
+dotnet test .\apps\windows-agent\Hackeado.VictimHost.sln -c Release
+.\scripts\windows\build-victim-host.ps1
 ```
 
 ## Matriz manual obligatoria en Windows

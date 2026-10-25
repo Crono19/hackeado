@@ -66,8 +66,9 @@ npm run test:e2e
 En Windows 11 con .NET 8:
 
 ```powershell
-dotnet test apps/windows-agent/Hackeado.VictimHost.sln -c Release
-./scripts/windows/build-victim-host.ps1
+cd C:\HACKEADO-SOURCE\hackeado
+dotnet test .\apps\windows-agent\Hackeado.VictimHost.sln -c Release
+.\scripts\windows\build-victim-host.ps1
 ```
 
 Las pruebas C# cubren lease, secuencia, antigüedad, ráfagas, watchdog, navegación, teclado, coordenadas y rotación/sanitización de logs.
