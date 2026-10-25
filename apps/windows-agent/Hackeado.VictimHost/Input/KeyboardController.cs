@@ -160,18 +160,38 @@ public sealed class KeyboardController
     private static void SendInputChecked(INPUT[] inputs)
     {
         if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>()) != (uint)inputs.Length)
-            throw new InvalidOperationException("send_input_failed");
+            throw new InvalidOperationException($"send_input_failed_{Marshal.GetLastWin32Error()}");
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct INPUT { public uint type; public InputUnion union; }
     [StructLayout(LayoutKind.Explicit)]
-    private struct InputUnion { [FieldOffset(0)] public KEYBDINPUT keyboard; }
+    private struct InputUnion
+    {
+        [FieldOffset(0)] public KEYBDINPUT keyboard;
+
+        // INPUT contains the largest member of the native Win32 union. Keeping
+        // MOUSEINPUT in the managed union is required even when this controller
+        // only sends keyboard packets: on x64 it makes INPUT 40 bytes, which is
+        // the size SendInput validates. A keyboard-only union is 32 bytes and
+        // SendInput fails with ERROR_INVALID_PARAMETER (87).
+        [FieldOffset(0)] public MOUSEINPUT mouse;
+    }
     [StructLayout(LayoutKind.Sequential)]
     private struct KEYBDINPUT
     {
         public ushort wVk;
         public ushort wScan;
+        public uint dwFlags;
+        public uint time;
+        public nint dwExtraInfo;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MOUSEINPUT
+    {
+        public int dx;
+        public int dy;
+        public uint mouseData;
         public uint dwFlags;
         public uint time;
         public nint dwExtraInfo;

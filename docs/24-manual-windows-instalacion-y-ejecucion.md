@@ -923,6 +923,17 @@ dotnet restore .\apps\windows-agent\Hackeado.VictimHost.sln
 
 Revisa fecha/hora, DNS, proxy y conexión de la VM.
 
+## `NETSDK1094` al publicar ReadyToRun
+
+La restauración del runtime no incluyó el paquete de optimización. Actualiza `scripts\windows\build-victim-host.ps1`; la versión corregida restaura con `PublishReadyToRun=true` antes de publicar. Para comprobar manualmente la corrección desde la raíz del clon:
+
+```powershell
+dotnet restore .\apps\windows-agent\Hackeado.VictimHost\Hackeado.VictimHost.csproj -r win-x64 -p:PublishReadyToRun=true
+.\scripts\windows\build-victim-host.ps1
+```
+
+No confundas este error de empaquetado con una falla de las pruebas: si el resumen muestra `33` correctas y `0` con errores, el código funcional superó su suite.
+
 ## Victim Host dice `FALLO DE CONFIGURACIÓN`
 
 Revisa:

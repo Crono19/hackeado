@@ -30,13 +30,18 @@ function Invoke-DotNet {
 
     & dotnet @DotNetArguments
     if ($LASTEXITCODE -ne 0) {
-        throw "Fallo de dotnet durante '$Stage' (código $LASTEXITCODE)."
+        throw "Fallo de dotnet durante '$Stage' (codigo $LASTEXITCODE)."
     }
 }
 
 Invoke-DotNet -Stage 'restore solution' -DotNetArguments @('restore', $solution)
 Invoke-DotNet -Stage 'test solution' -DotNetArguments @('test', $solution, '-c', $Configuration, '--no-restore')
-Invoke-DotNet -Stage 'restore runtime' -DotNetArguments @('restore', $project, '-r', $Runtime)
+Invoke-DotNet -Stage 'restore runtime' -DotNetArguments @(
+    'restore',
+    $project,
+    '-r', $Runtime,
+    '-p:PublishReadyToRun=true'
+)
 Invoke-DotNet -Stage 'publish' -DotNetArguments @(
     'publish',
     $project,
