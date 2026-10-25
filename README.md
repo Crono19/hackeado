@@ -199,6 +199,7 @@ No deben almacenarse credenciales ni secretos reales.
 - [Validación de Sprints 6–8](docs/21-validacion-sprints-6-8-control-remoto.md)
 - [Validación de Sprints 9–11 y matriz de fallos](docs/22-validacion-sprints-9-11-y-matriz-de-fallos.md)
 - [Release Candidate y cierre de Sprint 12](docs/23-release-candidate-sprint-12.md)
+- [Manual completo de Windows](docs/24-manual-windows-instalacion-y-ejecucion.md)
 
 ## Estado de aceptación de Fases 0–19
 
